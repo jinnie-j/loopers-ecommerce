@@ -1,14 +1,12 @@
 package com.loopers.domain.user;
 
-import com.loopers.domain.BaseEntity;
-import com.loopers.domain.point.PointEntity;
+
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.awt.*;
 
 
 @Entity
