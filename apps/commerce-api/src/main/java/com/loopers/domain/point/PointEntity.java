@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "point_entity")
+@Table(name = "point")
 @Getter
 @NoArgsConstructor
 public class PointEntity {
