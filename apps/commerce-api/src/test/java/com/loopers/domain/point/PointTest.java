@@ -1,0 +1,52 @@
+package com.loopers.domain.point;
+
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+public class PointTest {
+    /*
+    * 단위 테스트
+    - [x]  0 이하의 정수로 포인트를 충전시 실패한다.
+     */
+    @DisplayName("0 이하의 정수로 포인트를 충전시 실패한다.")
+    @Test
+    void fail_whenChargeAmountIsZeroOrNegative(){
+        //arrange
+        PointEntity pointEntity = new PointEntity(1000, "jinnie");
+
+        //act
+        assertThatThrownBy(() -> pointEntity.increase(0))
+                .isInstanceOf(CoreException.class)
+                .extracting("errorType")
+                .isEqualTo(ErrorType.BAD_REQUEST);
+
+        assertThatThrownBy(() -> pointEntity.increase(-100))
+                .isInstanceOf(CoreException.class)
+                .extracting("errorType")
+                .isEqualTo(ErrorType.BAD_REQUEST);
+    }
+
+    @DisplayName("0 이하의 정수로 포인트를 차감시 실패한다.")
+    @Test
+    void fail_whenDecreaseAmountIsZeroOrNegative(){
+        //arrange
+        PointEntity pointEntity = new PointEntity(1000, "jinnie");
+
+        //act
+        assertThatThrownBy(() -> pointEntity.decrease(0))
+                .isInstanceOf(CoreException.class)
+                .extracting("errorType")
+                .isEqualTo(ErrorType.BAD_REQUEST);
+
+        assertThatThrownBy(() -> pointEntity.decrease(-100))
+                .isInstanceOf(CoreException.class)
+                .extracting("errorType")
+                .isEqualTo(ErrorType.BAD_REQUEST);
+    }
+}
+
