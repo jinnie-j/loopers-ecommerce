@@ -48,7 +48,7 @@ classDiagram
     %% Associations
     User "1" --> "1" Point : 포인트 보유
     User "1" --> "N" Like : 좋아요
-    Like "N" --> "1" Product : 좋아요 대상
+    Product "1" --> "N" Like : 좋아요 보유
     User "1" --> "N" Order : 주문
     Order "1" --> "N" OrderItem : 포함
     OrderItem "N" --> "1" Product : 주문한 상품
