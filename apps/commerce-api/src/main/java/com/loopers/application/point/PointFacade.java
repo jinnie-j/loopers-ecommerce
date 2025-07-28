@@ -22,9 +22,7 @@ public class PointFacade {
     }
 
     public PointInfo chargePoint(String userId, int amount) {
-        if(!userJpaRepository.existsByUserId(userId)){
-            throw new CoreException(ErrorType.NOT_FOUND);
-        }
+
         PointEntity pointEntity = pointService.chargePoint(userId, amount);
         return PointInfo.from(pointEntity);
     }
