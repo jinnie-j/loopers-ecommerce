@@ -1,7 +1,10 @@
 package com.loopers.interfaces.api.point;
 
 import com.loopers.domain.point.PointEntity;
+import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserEntity;
+import com.loopers.domain.user.vo.Birth;
+import com.loopers.domain.user.vo.Email;
 import com.loopers.infrastructure.point.PointJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import com.loopers.interfaces.api.ApiResponse;
@@ -60,7 +63,7 @@ public class PointV1ApiE2ETest {
         void returnsPoint_whenValidUserIdIsProvided() {
 
             //arrange
-            UserEntity userEntity = new UserEntity("jinnie", "지은", "F", "1997-01-27", "jinnie@naver.com");
+            UserEntity userEntity = new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"));
             userJpaRepository.save(userEntity);
 
             PointEntity pointEntity = new PointEntity(1000,userEntity.getUserId());
@@ -111,7 +114,7 @@ public class PointV1ApiE2ETest {
         @Test
         void returnsUpdatedBalance_whenUserCharges1000() {
             //arrange
-            UserEntity userEntity = new UserEntity("jinnie", "지은", "F", "1997-01-27", "jinnie@naver.com");
+            UserEntity userEntity = new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"));
             userJpaRepository.save(userEntity);
             pointJpaRepository.save(new PointEntity(1000,userEntity.getUserId()));
 

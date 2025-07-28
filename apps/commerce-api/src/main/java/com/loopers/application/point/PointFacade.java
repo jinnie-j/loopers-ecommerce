@@ -2,9 +2,6 @@ package com.loopers.application.point;
 
 import com.loopers.domain.point.PointEntity;
 import com.loopers.domain.point.PointService;
-import com.loopers.infrastructure.user.UserJpaRepository;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +11,6 @@ import java.util.Optional;
 @Component
 public class PointFacade {
     private final PointService pointService;
-    private final UserJpaRepository userJpaRepository;
 
     public Optional<PointInfo> getPointInfo(String userId){
         return pointService.getPoint(userId)
@@ -22,9 +18,7 @@ public class PointFacade {
     }
 
     public PointInfo chargePoint(String userId, int amount) {
-        if(!userJpaRepository.existsByUserId(userId)){
-            throw new CoreException(ErrorType.NOT_FOUND);
-        }
+
         PointEntity pointEntity = pointService.chargePoint(userId, amount);
         return PointInfo.from(pointEntity);
     }

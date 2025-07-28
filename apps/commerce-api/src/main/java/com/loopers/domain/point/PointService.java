@@ -23,7 +23,7 @@ public class PointService {
         PointEntity pointEntity = pointRepository.findByUserId(userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "[id = " + userId + "] 의 포인트를 찾을 수 없습니다."));
 
-        pointEntity.increase(amount);
+        pointEntity.charge(amount);
         return pointEntity;
     }
 }

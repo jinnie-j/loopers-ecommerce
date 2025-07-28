@@ -1,7 +1,10 @@
 package com.loopers.domain.user;
 
+import com.loopers.application.user.UserCommand;
+import com.loopers.application.user.UserInfo;
+import com.loopers.domain.user.vo.Birth;
+import com.loopers.domain.user.vo.Email;
 import com.loopers.infrastructure.user.UserJpaRepository;
-import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.utils.DatabaseCleanUp;
@@ -54,20 +57,20 @@ public class UserServiceIntegrationTest {
         @Test
         void saveUser_whenSignUp() {
             // arrange
-            UserV1Dto.SignUpRequest signUpRequest = new UserV1Dto.SignUpRequest(
-                    "jinnie", "지은", "F", "1997-01-27", "jinnie@naver.com"
+            UserCommand.SignUp command = new UserCommand.SignUp(
+                    "jinnie", "지은", Gender.valueOf("FEMALE"), Birth.of("1997-01-27"), Email.of("jinnie@naver.com")
             );
             // act
-            UserV1Dto.UserResponse userResponse = userService.signUp(signUpRequest);
+            UserInfo userInfo = userService.signUp(command);
 
             //assert
             verify(userJpaRepository).save(any(UserEntity.class));
 
             assertAll(
-                    () -> assertThat(userResponse).isNotNull(),
-                    () -> assertThat(userResponse.userId()).isEqualTo(signUpRequest.userId()),
-                    () -> assertThat(userResponse.name()).isEqualTo(signUpRequest.name()),
-                    () -> assertThat(userResponse.email()).isEqualTo(signUpRequest.email())
+                    () -> assertThat(userInfo).isNotNull(),
+                    () -> assertThat(userInfo.userId()).isEqualTo(command.userId()),
+                    () -> assertThat(userInfo.name()).isEqualTo(command.name()),
+                    () -> assertThat(userInfo.email()).isEqualTo(command.email())
             );
         }
 
@@ -76,13 +79,13 @@ public class UserServiceIntegrationTest {
         void throwsException_whenIdIsAlreadyExists() {
 
             // arrange
-            UserV1Dto.SignUpRequest signUpRequest = new UserV1Dto.SignUpRequest(
-                    "jinnie", "지은","F", "1997-01-27", "jinnie@naver.com"
+            UserCommand.SignUp command = new UserCommand.SignUp(
+                    "jinnie", "지은",Gender.valueOf("FEMALE"), Birth.of("1997-01-27"), Email.of("jinnie@naver.com")
             );
-            userService.signUp(signUpRequest);
+            userService.signUp(command);
             // act
             CoreException exception = assertThrows(CoreException.class, () -> {
-                userService.signUp(signUpRequest);  // 같은 ID로 재가입 시도
+                userService.signUp(command);  // 같은 ID로 재가입 시도
             });
             //assert
             assertThat(exception.getErrorType()).isEqualTo(ErrorType.CONFLICT);
@@ -97,7 +100,7 @@ public class UserServiceIntegrationTest {
         void returnsUserInfo_whenValidIdIsProvided() {
             // arrange
             UserEntity userEntity = userJpaRepository.save(
-                    new UserEntity("jinnie","지은","F","1997-01-27", "jinnie@naver.com")
+                    new UserEntity("jinnie","지은",Gender.valueOf("FEMALE"), Birth.of("1997-01-27"), Email.of("jinnie@naver.com"))
             );
             // act
             UserEntity result = userService.getUserEntity(userEntity.getUserId());

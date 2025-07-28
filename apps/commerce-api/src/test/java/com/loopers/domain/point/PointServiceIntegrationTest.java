@@ -1,7 +1,10 @@
 package com.loopers.domain.point;
 
+import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserEntity;
 
+import com.loopers.domain.user.vo.Birth;
+import com.loopers.domain.user.vo.Email;
 import com.loopers.infrastructure.point.PointJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import com.loopers.support.error.CoreException;
@@ -54,7 +57,7 @@ public class PointServiceIntegrationTest {
         void returnsPoint_whenValidIdIsProvided() {
             // arrange
             UserEntity userEntity = userJpaRepository.save(
-                    new UserEntity("jinnie", "지은", "F", "1997-01-27", "jinnie@naver.com")
+                    new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"))
             );
             PointEntity pointEntity = pointJpaRepository.save(new PointEntity(1000, userEntity.getUserId()));
 

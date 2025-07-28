@@ -1,6 +1,10 @@
 package com.loopers.interfaces.api.user;
 
+import com.loopers.application.user.UserCommand;
 import com.loopers.application.user.UserInfo;
+import com.loopers.domain.user.Gender;
+import com.loopers.domain.user.vo.Birth;
+import com.loopers.domain.user.vo.Email;
 import jakarta.validation.constraints.NotNull;
 
 public class UserV1Dto {
@@ -15,8 +19,9 @@ public class UserV1Dto {
             String birth,
             @NotNull
             String email
-    ){
-        public SignUpRequest{
+    ) {
+        public UserCommand.SignUp toCommand() {
+            return new UserCommand.SignUp(userId, name, Gender.valueOf(gender), Birth.of(birth), Email.of(email));
         }
     }
 
@@ -26,14 +31,14 @@ public class UserV1Dto {
             String gender,
             String birth,
             String email
-    ){}
-
-    public record UserInfoResponse(String id, String name, String email) {
-        public static UserV1Dto.UserInfoResponse from(UserInfo info) {
-            return new UserV1Dto.UserInfoResponse(
-                    info.userId(),
-                    info.name(),
-                    info.email()
+    ) {
+        public static UserResponse from(UserInfo userInfo) {
+            return new UserResponse(
+                    userInfo.userId(),
+                    userInfo.name(),
+                    userInfo.gender().name(),
+                    userInfo.birth().getValue(),
+                    userInfo.email().getValue()
             );
         }
     }
