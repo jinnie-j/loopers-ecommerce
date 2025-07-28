@@ -1,6 +1,8 @@
 package com.loopers.domain.user;
 
 
+import com.loopers.domain.user.vo.Birth;
+import com.loopers.domain.user.vo.Email;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
@@ -17,9 +19,12 @@ public class UserEntity{
     @Id
     private String userId;
     private String name;
-    private String gender;
-    private String email;
-    private String birth;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
+    @Embedded
+    private Email email;
+    @Embedded
+    private Birth birth;
 
 
     private final String PATTERN_USER_ID = "^[a-zA-Z0-9]{1,10}$";
@@ -41,13 +46,6 @@ public class UserEntity{
             );
         }
 
-        if(email == null || !email.matches(PATTERN_EMAIL)){
-            throw new CoreException(
-                    ErrorType.BAD_REQUEST,
-                    "이메일은 xx@yy.zz 형식이어야 합니다."
-            );
-        }
-
         if(birth == null || !birth.matches(PATTERN_BIRTH)){
             throw new CoreException(
                     ErrorType.BAD_REQUEST,
@@ -57,9 +55,9 @@ public class UserEntity{
 
         this.userId = userId;
         this.name = name;
-        this.gender = gender;
-        this.birth = birth;
-        this.email = email;
+        this.gender = Gender.from(gender);
+        this.birth = new Birth(birth);
+        this.email = new Email(email);
     }
 
 }
