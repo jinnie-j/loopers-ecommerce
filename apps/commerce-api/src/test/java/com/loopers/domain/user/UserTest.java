@@ -1,5 +1,7 @@
 package com.loopers.domain.user;
 
+import com.loopers.domain.user.vo.Birth;
+import com.loopers.domain.user.vo.Email;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.DisplayName;
@@ -32,16 +34,16 @@ public class UserTest {
         final String name = "지은";
         final String email = "jinnie@naver.com";
         final String birth = "1997-01-27";
-        final String gender = "F";
+        final String gender = "FEMALE";
 
         // act
         var exception = assertThrows(CoreException.class, () -> {
             new UserEntity(
                     userId,
                     name,
-                    email,
-                    birth,
-                    gender
+                    Gender.valueOf(gender),
+                    Birth.of(birth),
+                    Email.of(email)
             );
         });
         // assert
@@ -57,16 +59,16 @@ public class UserTest {
         final String name = "지은";
         final String email = "jinnie@naver";
         final String birth = "1997-01-27";
-        final String gender = "F";
+        final String gender = "FEMALE";
 
         //act
         final CoreException exception = assertThrows(CoreException.class, () -> {
             new UserEntity(
                     userId,
                     name,
-                    email,
-                    birth,
-                    gender
+                    Gender.valueOf(gender),
+                    Birth.of(birth),
+                    Email.of(email)
             );
         });
         //assert
@@ -82,16 +84,16 @@ public class UserTest {
         final String name = "지은";
         final String email = "jinnie@naver";
         final String birth = "1997-01";
-        final String gender = "F";
+        final String gender = "FEMALE";
 
         //act
         final CoreException exception = assertThrows(CoreException.class, () -> {
             new UserEntity(
                     userId,
                     name,
-                    email,
-                    birth,
-                    gender
+                    Gender.valueOf(gender),
+                    Birth.of(birth),
+                    Email.of(email)
             );
         });
         //assert

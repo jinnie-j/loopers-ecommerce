@@ -1,6 +1,9 @@
 package com.loopers.interfaces.api.user;
 
+import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserEntity;
+import com.loopers.domain.user.vo.Birth;
+import com.loopers.domain.user.vo.Email;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import com.loopers.interfaces.api.ApiResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -112,7 +115,7 @@ public class UserV1ApiE2ETest {
         void returnsUserInfo_whenGetUserInfoIsSuccessful() {
 
             //arrange
-            UserEntity userEntity = new UserEntity("jinnie","지은","F","1997-01-27", "jinnie@naver.com");
+            UserEntity userEntity = new UserEntity("jinnie","지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"));
             userJpaRepository.save(userEntity);
 
             String requestUrl = ENDPOINT_GET.apply(userEntity.getUserId());

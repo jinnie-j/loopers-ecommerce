@@ -4,7 +4,6 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -20,12 +19,12 @@ public class PointTest {
         PointEntity pointEntity = new PointEntity(1000, "jinnie");
 
         //act
-        assertThatThrownBy(() -> pointEntity.increase(0))
+        assertThatThrownBy(() -> pointEntity.charge(0))
                 .isInstanceOf(CoreException.class)
                 .extracting("errorType")
                 .isEqualTo(ErrorType.BAD_REQUEST);
 
-        assertThatThrownBy(() -> pointEntity.increase(-100))
+        assertThatThrownBy(() -> pointEntity.charge(-100))
                 .isInstanceOf(CoreException.class)
                 .extracting("errorType")
                 .isEqualTo(ErrorType.BAD_REQUEST);
@@ -38,12 +37,12 @@ public class PointTest {
         PointEntity pointEntity = new PointEntity(1000, "jinnie");
 
         //act
-        assertThatThrownBy(() -> pointEntity.decrease(0))
+        assertThatThrownBy(() -> pointEntity.use(0))
                 .isInstanceOf(CoreException.class)
                 .extracting("errorType")
                 .isEqualTo(ErrorType.BAD_REQUEST);
 
-        assertThatThrownBy(() -> pointEntity.decrease(-100))
+        assertThatThrownBy(() -> pointEntity.use(-100))
                 .isInstanceOf(CoreException.class)
                 .extracting("errorType")
                 .isEqualTo(ErrorType.BAD_REQUEST);

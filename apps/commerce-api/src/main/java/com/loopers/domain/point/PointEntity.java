@@ -1,6 +1,5 @@
 package com.loopers.domain.point;
 
-import com.loopers.domain.user.UserEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
@@ -29,7 +28,7 @@ public class PointEntity {
         this.userId = userId;
     }
 
-    public void increase(int amount){
+    public void charge(int amount){
         if(amount <= 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
@@ -37,7 +36,7 @@ public class PointEntity {
         this.balance = newBalance;
     }
 
-    public void decrease(int amount){
+    public void use(int amount){
         if(amount <= 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
