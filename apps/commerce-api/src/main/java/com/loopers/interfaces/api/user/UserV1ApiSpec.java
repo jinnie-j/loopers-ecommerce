@@ -13,7 +13,7 @@ public interface UserV1ApiSpec {
     ApiResponse<UserV1Dto.UserResponse> signUp(
             UserV1Dto.SignUpRequest signUpRequest
     );
-    ApiResponse<UserV1Dto.UserInfoResponse> getUserInfo(
+    ApiResponse<UserV1Dto.UserResponse> getUserInfo(
             @Schema(name = "유저Id", description = "조회할 유저의 ID")
             String userId
     );

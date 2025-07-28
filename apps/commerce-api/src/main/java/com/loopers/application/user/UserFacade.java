@@ -15,4 +15,8 @@ public class UserFacade {
         UserEntity userEntity = userService.getUserEntity(userId);
                 return UserInfo.from(userEntity);
     }
+
+    public UserInfo signUp(UserCommand.SignUp command) {
+        return userService.signUp(command);
+    }
 }
