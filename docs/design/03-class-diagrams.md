@@ -5,16 +5,22 @@ classDiagram
     class User {
         Long id
         String name
+        +like(product: Product): void
+        +unlike(product: Product): void
     }
     class Point {
         Long id
         Long balance
+        +addPoints(amount: Long): void
+        +usePoints(amount: Long): boolean
     }
     class Product {
         Long id
         String name
         Long price
         Long stock
+        +decreaseStock(amount: Long): void
+        +increaseStock(amount: Long): void
     }
 
     class Brand {
@@ -32,17 +38,21 @@ classDiagram
         User user
         List orderItems
         Long totalAmount
+        +addOrderItem(product: Product, quantity: Long)
+        +calculateTotalAmount(): Long
     }
 
     class OrderItem{
         Product product
         Long quantity
         Long price
+        +calculatePrice(): Long
     }
     
     class Payment{
         Long id
         Order order
+        +process(): void
     }
 
     %% Associations
