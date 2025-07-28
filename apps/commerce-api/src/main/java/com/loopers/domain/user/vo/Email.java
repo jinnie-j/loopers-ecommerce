@@ -35,8 +35,7 @@ public class Email {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Email)) return false;
-        Email other = (Email) o;
+        if (!(o instanceof Email other)) return false;
         return value.equalsIgnoreCase(other.value);
     }
 

@@ -5,8 +5,6 @@ import com.loopers.application.user.UserFacade;
 import com.loopers.application.user.UserInfo;
 import com.loopers.interfaces.api.ApiResponse;
 
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
