@@ -9,8 +9,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-
-
 @Entity
 @Table(name = "user")
 @Getter
@@ -22,10 +20,11 @@ public class UserEntity{
     @Enumerated(EnumType.STRING)
     private Gender gender;
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "email"))
     private Email email;
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "birth"))
     private Birth birth;
-
 
     private final String PATTERN_USER_ID = "^[a-zA-Z0-9]{1,10}$";
     private final String PATTERN_EMAIL = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
@@ -34,9 +33,9 @@ public class UserEntity{
     public UserEntity(
             String userId,
             String name,
-            String gender,
-            String birth,
-            String email
+            Gender gender,
+            Birth birth,
+            Email email
 
     ){
         if(userId == null || !userId.matches(PATTERN_USER_ID)){
@@ -46,18 +45,11 @@ public class UserEntity{
             );
         }
 
-        if(birth == null || !birth.matches(PATTERN_BIRTH)){
-            throw new CoreException(
-                    ErrorType.BAD_REQUEST,
-                    "생년월일은 'yyyy-MM-dd' 형식이어야 합니다."
-            );
-        }
-
         this.userId = userId;
         this.name = name;
-        this.gender = Gender.from(gender);
-        this.birth = new Birth(birth);
-        this.email = new Email(email);
+        this.gender = gender;
+        this.birth = birth;
+        this.email = email;
     }
 
 }

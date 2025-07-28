@@ -2,17 +2,21 @@ package com.loopers.domain.user.vo;
 
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import jakarta.persistence.Embeddable;
 import lombok.Getter;
 
 import java.util.regex.Pattern;
 
 @Getter
+@Embeddable
 public class Email {
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$");
 
-    private final String value;
+    private String value;
 
+    public Email() {
+    }
     public Email(String email) {
         if (email == null || !EMAIL_PATTERN.matcher(email).matches()) {
             throw new CoreException(
@@ -21,6 +25,11 @@ public class Email {
             );
         }
         this.value = email;
+    }
+
+
+    public static Email of(String email) {
+        return new Email(email);
     }
 
     @Override
