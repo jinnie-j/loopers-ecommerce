@@ -12,12 +12,12 @@ public interface PointV1ApiSpec {
 
     ApiResponse<PointV1Dto.PointResponse> getPoint(
             @Schema(name = "유저 ID", description = "포인트를 조회할 유저의 ID")
-            String userId
+            Long userId
     );
 
     @PostMapping("/charge")
     ApiResponse<PointV1Dto.PointResponse> charge(
-            @Schema(name = "X-USER-ID") String userId,
+            @Schema(name = "X-USER-ID") Long userId,
             @RequestBody PointV1Dto.PointChargeRequest request
     );
 }

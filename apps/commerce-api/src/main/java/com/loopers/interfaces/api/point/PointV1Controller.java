@@ -21,9 +21,9 @@ public class PointV1Controller implements PointV1ApiSpec{
     @Override
     public ApiResponse<PointV1Dto.PointResponse> getPoint(
             @RequestHeader(value = "X-USER-ID")
-            String userId
+            Long userId
     ){
-        if(userId == null || userId.isBlank()){
+        if(userId == null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId is required");
         }
         Optional<PointInfo> info = pointFacade.getPointInfo(userId);
@@ -35,7 +35,7 @@ public class PointV1Controller implements PointV1ApiSpec{
     @PostMapping("/charge")
     @Override
     public ApiResponse<PointV1Dto.PointResponse> charge(
-            @RequestHeader(value = "X-USER-ID") String userId,
+            @RequestHeader(value = "X-USER-ID") Long userId,
             @RequestBody PointV1Dto.PointChargeRequest request
     ){
 

@@ -13,12 +13,12 @@ import java.util.Optional;
 public class PointFacade {
     private final PointService pointService;
 
-    public Optional<PointInfo> getPointInfo(String userId){
+    public Optional<PointInfo> getPointInfo(long userId){
         return pointService.getPoint(userId)
                 .map(PointInfo::from);
     }
 
-    public PointInfo chargePoint(String userId, int amount) {
+    public PointInfo chargePoint(long userId, int amount) {
 
         PointEntity pointEntity = pointService.chargePoint(userId, amount);
         return PointInfo.from(pointEntity);
