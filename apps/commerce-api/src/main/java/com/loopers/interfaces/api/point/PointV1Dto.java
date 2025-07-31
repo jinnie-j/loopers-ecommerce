@@ -1,6 +1,6 @@
 package com.loopers.interfaces.api.point;
 
-import com.loopers.application.point.PointInfo;
+import com.loopers.domain.point.PointInfo;
 
 import java.util.Optional;
 
