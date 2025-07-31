@@ -18,9 +18,9 @@ public class PointEntity {
 
     private int balance;
 
-    private String userId;
+    private Long userId;
 
-    public PointEntity(int balance, String userId) {
+    public PointEntity(int balance, Long userId) {
         if(balance < 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
@@ -28,20 +28,21 @@ public class PointEntity {
         this.userId = userId;
     }
 
-    public void charge(int amount){
+    public void charge(long amount){
         if(amount <= 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
-        int newBalance = this.balance + amount;
-        this.balance = newBalance;
+        this.balance += amount;
     }
 
-    public void use(int amount){
+    public void use(long amount){
         if(amount <= 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
-        int newBalance = this.balance - amount;
-        this.balance = newBalance;
+        if(this.balance < amount){
+            throw new CoreException(ErrorType.BAD_REQUEST);
+        }
+        this.balance -= amount;
     }
 
 }

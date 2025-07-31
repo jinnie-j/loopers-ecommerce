@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface PointJpaRepository extends JpaRepository<PointEntity, String> {
-    Optional<PointEntity> findByUserId(String userId);
+public interface PointJpaRepository extends JpaRepository<PointEntity, Long> {
+    Optional<PointEntity> findByUserId(long userId);
 }

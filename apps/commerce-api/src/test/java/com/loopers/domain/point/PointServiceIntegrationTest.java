@@ -59,10 +59,10 @@ public class PointServiceIntegrationTest {
             UserEntity userEntity = userJpaRepository.save(
                     new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"))
             );
-            PointEntity pointEntity = pointJpaRepository.save(new PointEntity(1000, userEntity.getUserId()));
+            PointEntity pointEntity = pointJpaRepository.save(new PointEntity(1000, userEntity.getId()));
 
             // act
-            Optional<PointEntity> point = pointService.getPoint(userEntity.getUserId());
+            Optional<PointEntity> point = pointService.getPoint(userEntity.getId());
 
             // assert
             assertAll(
@@ -76,7 +76,7 @@ public class PointServiceIntegrationTest {
         @Test
         void returnsNull_whenInvalidIdIsProvided() {
             // arrange
-            String invalidId = "non_existent_user";
+            long invalidId = 99999L;
 
             // act
             Optional<PointEntity> point = pointService.getPoint(invalidId);
@@ -92,7 +92,7 @@ public class PointServiceIntegrationTest {
         @Test
         void fail_whenUserDoesNotExistOnCharge() {
             // arrange
-            String invalidId = "non_existent_user";
+            long invalidId = 99999L;
 
             // assert
             assertThatThrownBy(() -> pointService.chargePoint(invalidId, 1000))

@@ -25,4 +25,15 @@ public class ProductService {
                 .orElseThrow(()-> new CoreException(ErrorType.NOT_FOUND));
         return ProductInfo.from(productEntity);
     }
+
+    public void decreaseStock(Long productId, Long quantity) {
+        ProductEntity product = productRepository.findById(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+
+        if (product.getStock() < quantity) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "재고가 부족합니다.");
+        }
+        product.decreaseStock(quantity);
+        productRepository.save(product);
+    }
 }
