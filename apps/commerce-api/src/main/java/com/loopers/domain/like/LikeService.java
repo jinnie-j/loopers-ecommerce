@@ -41,4 +41,8 @@ public class LikeService {
         List<LikeEntity> likeEntities = likeRepository.findByUserId(userId);
         return likeEntities.stream().map(LikeInfo::from).toList();
     }
+
+    public long countLikes(Long productId) {
+        return likeRepository.countByProductId(productId);
+    }
 }

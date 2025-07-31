@@ -14,4 +14,6 @@ public interface LikeRepository {
     void deleteByUserIdAndProductId(long userId, long productId);
 
     List<LikeEntity> findByUserId(long userId);
+
+    long countByProductId(Long productId);
 }

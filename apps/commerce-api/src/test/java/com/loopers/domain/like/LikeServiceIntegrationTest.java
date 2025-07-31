@@ -4,7 +4,6 @@ import com.loopers.domain.brand.BrandInfo;
 import com.loopers.domain.product.ProductInfo;
 import com.loopers.domain.user.UserInfo;
 import com.loopers.domain.brand.BrandCommand;
-import com.loopers.domain.brand.BrandEntity;
 import com.loopers.domain.brand.BrandService;
 import com.loopers.domain.product.ProductCommand;
 import com.loopers.domain.product.ProductService;
