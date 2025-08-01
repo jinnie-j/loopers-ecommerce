@@ -66,7 +66,7 @@ public class PointV1ApiE2ETest {
             UserEntity userEntity = new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"));
             userJpaRepository.save(userEntity);
 
-            PointEntity pointEntity = new PointEntity(1000,userEntity.getUserId());
+            PointEntity pointEntity = new PointEntity(1000,userEntity.getId());
             pointJpaRepository.save(pointEntity);
 
             HttpHeaders headers = new HttpHeaders();
@@ -116,7 +116,7 @@ public class PointV1ApiE2ETest {
             //arrange
             UserEntity userEntity = new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"));
             userJpaRepository.save(userEntity);
-            pointJpaRepository.save(new PointEntity(1000,userEntity.getUserId()));
+            pointJpaRepository.save(new PointEntity(1000,userEntity.getId()));
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("X-USER-ID", userEntity.getUserId());

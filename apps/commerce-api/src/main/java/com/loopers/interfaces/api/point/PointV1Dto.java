@@ -5,7 +5,7 @@ import com.loopers.domain.point.PointInfo;
 import java.util.Optional;
 
 public class PointV1Dto {
-    public record PointResponse(int balance) {
+    public record PointResponse(long balance) {
         public static PointResponse from(Optional<PointInfo> pointInfo) {
             return new PointResponse(
                     pointInfo.get().balance()

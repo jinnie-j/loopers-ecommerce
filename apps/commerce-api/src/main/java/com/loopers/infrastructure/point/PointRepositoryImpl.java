@@ -11,7 +11,8 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Component
-public class PointRepositoryImpl implements PointRepository {
+public class
+PointRepositoryImpl implements PointRepository {
     private final PointJpaRepository pointJpaRepository;
 
     @Override
@@ -20,9 +21,8 @@ public class PointRepositoryImpl implements PointRepository {
     }
 
     @Override
-    public PointEntity findById(Long id) {
-        return pointJpaRepository.findById(id)
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "[id = " + id + "] 포인트 정보를 찾을 수 없습니다."));
+    public Optional<PointEntity> findById(Long id) {
+        return pointJpaRepository.findById(id);
     }
 
     @Override

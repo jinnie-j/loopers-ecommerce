@@ -16,16 +16,17 @@ public class PointEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int balance;
+    private Long balance;
 
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    public PointEntity(int balance, Long userId) {
+    public PointEntity(long userId, long balance) {
         if(balance < 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
-        this.balance = balance;
         this.userId = userId;
+        this.balance = balance;
     }
 
     public void charge(long amount){
