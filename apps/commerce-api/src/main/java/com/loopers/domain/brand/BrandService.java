@@ -26,4 +26,10 @@ public class BrandService {
         return BrandInfo.from(savedEntity);
     }
 
+
+    public String getBrandName(Long brandId) {
+        return brandRepository.findById(brandId)
+                .map(BrandEntity::getName)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "브랜드 정보를 찾을 수 없습니다."));
+    }
 }

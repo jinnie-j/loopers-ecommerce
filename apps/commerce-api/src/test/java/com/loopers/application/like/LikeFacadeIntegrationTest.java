@@ -1,6 +1,7 @@
-package com.loopers.domain.like;
+package com.loopers.application.like;
 
-import com.loopers.application.like.LikeFacade;
+import com.loopers.domain.like.LikeCommand;
+import com.loopers.domain.like.LikeService;
 import com.loopers.domain.product.ProductInfo;
 import com.loopers.domain.user.UserInfo;
 import com.loopers.domain.brand.BrandCommand;

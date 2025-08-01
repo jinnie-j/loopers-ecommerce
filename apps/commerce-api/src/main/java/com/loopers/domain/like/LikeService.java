@@ -42,7 +42,7 @@ public class LikeService {
         return likeEntities.stream().map(LikeInfo::from).toList();
     }
 
-    public long countLikes(Long productId) {
+    public long countByProductId(Long productId) {
         return likeRepository.countByProductId(productId);
     }
 }
