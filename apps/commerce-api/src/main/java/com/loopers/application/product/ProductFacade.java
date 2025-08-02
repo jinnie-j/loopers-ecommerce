@@ -7,6 +7,7 @@ import com.loopers.domain.product.ProductInfo;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.product.ProductSortType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -34,8 +35,8 @@ public class ProductFacade {
     /**
      * 정렬 조건에 따른 전체 상품 목록 조회
      */
-    public List<ProductResult> getProductsSorted(ProductSortType sort) {
-        List<ProductEntity> products = productQueryRepository.findBySortType(sort);
+    public List<ProductResult> getProductsSorted(ProductSortType sort, Pageable pageable) {
+        List<ProductEntity> products = productQueryRepository.findBySortType(sort, pageable);
 
         return products.stream()
                 .map(product -> {

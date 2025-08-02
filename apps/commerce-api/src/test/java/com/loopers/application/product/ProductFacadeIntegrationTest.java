@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -43,7 +45,7 @@ class ProductFacadeIntegrationTest {
     @Test
     @DisplayName("상품 조회 시 브랜드명과 좋아요 수를 포함해 반환한다")
     void getProduct_withBrandAndLikes() {
-        // given
+        // arrange
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
         ProductEntity product = productRepository.save(
                 new ProductEntity("아이폰", 1200000L, 15L, brand.getId())
@@ -51,10 +53,10 @@ class ProductFacadeIntegrationTest {
         likeRepository.save(LikeEntity.of(1L, product.getId()));
         likeRepository.save(LikeEntity.of(2L, product.getId()));
 
-        // when
+        // act
         ProductResult result = productFacade.getProduct(product.getId());
 
-        // then
+        // assert
         assertThat(result.name()).isEqualTo("아이폰");
         assertThat(result.brandName()).isEqualTo("Apple");
         assertThat(result.likeCount()).isEqualTo(2L);
@@ -63,15 +65,16 @@ class ProductFacadeIntegrationTest {
     @Test
     @DisplayName("정렬 조건이 LATEST일 때 최신순으로 상품 목록이 조회된다")
     void getProductsSorted_latest() {
-        // given
+        // arrange
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
         productRepository.save(new ProductEntity("구형 모델", 500000L, 3L, brand.getId()));
         productRepository.save(new ProductEntity("신형 모델", 1500000L, 2L, brand.getId()));
+        Pageable pageable = PageRequest.of(0, 10);
 
-        // when
-        List<ProductResult> results = productFacade.getProductsSorted(ProductSortType.LATEST);
+        // act
+        List<ProductResult> results = productFacade.getProductsSorted(ProductSortType.LATEST, pageable);
 
-        // then
+        // assert
         assertThat(results).hasSize(2);
         assertThat(results.get(0).name()).isEqualTo("신형 모델");
         assertThat(results.get(1).name()).isEqualTo("구형 모델");
@@ -80,15 +83,16 @@ class ProductFacadeIntegrationTest {
     @Test
     @DisplayName("정렬 조건이 PRICE_ASC일 때 가격 오름차순으로 상품 목록이 조회된다")
     void getProductsSorted_priceAsc() {
-        // given
+        // arrange
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
         productRepository.save(new ProductEntity("비싼 상품", 200000L, 5L, brand.getId()));
         productRepository.save(new ProductEntity("저렴한 상품", 100000L, 3L, brand.getId()));
+        Pageable pageable = PageRequest.of(0, 10);
 
-        // when
-        List<ProductResult> results = productFacade.getProductsSorted(ProductSortType.PRICE_ASC);
+        // act
+        List<ProductResult> results = productFacade.getProductsSorted(ProductSortType.PRICE_ASC, pageable);
 
-        // then
+        // assert
         assertThat(results).hasSize(2);
         assertThat(results.get(0).name()).isEqualTo("저렴한 상품");
         assertThat(results.get(1).name()).isEqualTo("비싼 상품");
@@ -97,7 +101,7 @@ class ProductFacadeIntegrationTest {
     @Test
     @DisplayName("정렬 조건이 LIKES_DESC일 때 좋아요 수 내림차순으로 상품 목록이 조회된다")
     void getProductsSorted_likesDesc() {
-        // given
+        // arrange
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
         ProductEntity productA = productRepository.save(new ProductEntity("상품A", 10000L, 1L, brand.getId()));
         ProductEntity productB = productRepository.save(new ProductEntity("상품B", 10000L, 1L, brand.getId()));
@@ -105,11 +109,12 @@ class ProductFacadeIntegrationTest {
         likeRepository.save(LikeEntity.of(1L, productA.getId()));
         likeRepository.save(LikeEntity.of(2L, productA.getId()));
         likeRepository.save(LikeEntity.of(3L, productB.getId()));
+        Pageable pageable = PageRequest.of(0, 10);
 
-        // when
-        List<ProductResult> results = productFacade.getProductsSorted(ProductSortType.LIKES_DESC);
+        // act
+        List<ProductResult> results = productFacade.getProductsSorted(ProductSortType.LIKES_DESC, pageable);
 
-        // then
+        // assert
         assertThat(results).hasSize(2);
         assertThat(results.get(0).likeCount()).isGreaterThanOrEqualTo(results.get(1).likeCount());
     }

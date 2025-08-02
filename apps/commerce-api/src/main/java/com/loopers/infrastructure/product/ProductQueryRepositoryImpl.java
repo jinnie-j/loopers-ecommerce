@@ -8,6 +8,7 @@ import com.loopers.domain.product.QProductEntity;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,7 +20,7 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<ProductEntity> findBySortType(ProductSortType sort) {
+    public List<ProductEntity> findBySortType(ProductSortType sort, Pageable pageable) {
         QProductEntity product = QProductEntity.productEntity;
         QLikeEntity like = QLikeEntity.likeEntity;
 
@@ -36,6 +37,8 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
                         .orderBy(like.count().desc());
             }
         }
+
+        query.offset(pageable.getOffset()).limit(pageable.getPageSize());
 
         return query.fetch();
     }
