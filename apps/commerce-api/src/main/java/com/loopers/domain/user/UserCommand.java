@@ -1,6 +1,5 @@
-package com.loopers.application.user;
+package com.loopers.domain.user;
 
-import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.vo.Birth;
 import com.loopers.domain.user.vo.Email;
 

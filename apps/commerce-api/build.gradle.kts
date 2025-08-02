@@ -1,3 +1,6 @@
+plugins {
+    kotlin("jvm") version "2.1.21"
+}
 dependencies {
     // add-ons
     implementation(project(":modules:jpa"))
@@ -11,8 +14,18 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:${project.properties["springDocOpenApiVersion"]}")
 
     // querydsl
-    implementation("com.querydsl:querydsl-jpa::jakarta")
+    annotationProcessor("com.querydsl:querydsl-apt::jakarta")
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
 
     // test-fixtures
     testImplementation(testFixtures(project(":modules:jpa")))
+    implementation(kotlin("stdlib-jdk8"))
+    testImplementation(kotlin("test"))
+}
+repositories {
+    mavenCentral()
+}
+kotlin {
+    jvmToolchain(21)
 }

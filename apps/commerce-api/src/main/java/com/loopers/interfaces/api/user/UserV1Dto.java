@@ -1,7 +1,7 @@
 package com.loopers.interfaces.api.user;
 
-import com.loopers.application.user.UserCommand;
-import com.loopers.application.user.UserInfo;
+import com.loopers.domain.user.UserCommand;
+import com.loopers.domain.user.UserInfo;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.vo.Birth;
 import com.loopers.domain.user.vo.Email;

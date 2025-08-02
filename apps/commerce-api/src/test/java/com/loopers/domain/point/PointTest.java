@@ -16,7 +16,7 @@ public class PointTest {
     @Test
     void fail_whenChargeAmountIsZeroOrNegative(){
         //arrange
-        PointEntity pointEntity = new PointEntity(1000, "jinnie");
+        PointEntity pointEntity = new PointEntity(1000, 1L);
 
         //act
         assertThatThrownBy(() -> pointEntity.charge(0))
@@ -34,7 +34,7 @@ public class PointTest {
     @Test
     void fail_whenDecreaseAmountIsZeroOrNegative(){
         //arrange
-        PointEntity pointEntity = new PointEntity(1000, "jinnie");
+        PointEntity pointEntity = new PointEntity(1000, 1L);
 
         //act
         assertThatThrownBy(() -> pointEntity.use(0))
