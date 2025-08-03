@@ -19,29 +19,32 @@ public class PointV1Controller implements PointV1ApiSpec{
 
     @GetMapping
     @Override
-    public ApiResponse<PointV1Dto.PointResponse> getPoint(
+    public ApiResponse<PointResponse> getPoint(
             @RequestHeader(value = "X-USER-ID")
             Long userId
     ){
         if(userId == null){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "userId is required");
         }
-        Optional<PointInfo> info = pointFacade.getPointInfo(userId);
 
-        PointV1Dto.PointResponse response = PointV1Dto.PointResponse.from(info);
+        PointInfo info = pointFacade.getPointInfo(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "포인트 정보를 찾을 수 없습니다."));
+
+        PointResponse response = PointResponse.from(info);
         return ApiResponse.success(response);
     }
 
     @PostMapping("/charge")
     @Override
-    public ApiResponse<PointV1Dto.PointResponse> charge(
+    public ApiResponse<PointResponse> charge(
             @RequestHeader(value = "X-USER-ID") Long userId,
-            @RequestBody PointV1Dto.PointChargeRequest request
+            @RequestBody PointRequest.PointChargeRequest request
     ){
+        PointInfo updatedPoint = pointFacade.chargePoint(userId, request.amount());
 
-    PointInfo updatedPoint = pointFacade.chargePoint(userId, request.amount());
-    PointV1Dto.PointResponse response = PointV1Dto.PointResponse.from(Optional.ofNullable(updatedPoint));
-    return ApiResponse.success(response);
+        PointResponse response = PointResponse.from(updatedPoint);
+        return ApiResponse.success(response);
         }
+
 
 }

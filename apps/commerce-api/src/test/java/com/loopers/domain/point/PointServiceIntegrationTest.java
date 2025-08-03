@@ -59,16 +59,16 @@ public class PointServiceIntegrationTest {
             UserEntity userEntity = userJpaRepository.save(
                     new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"))
             );
-            PointEntity pointEntity = pointJpaRepository.save(new PointEntity(1000, userEntity.getId()));
+            PointEntity pointEntity = pointJpaRepository.save(new PointEntity(userEntity.getId(), 1000L));
 
             // act
-            Optional<PointEntity> point = pointService.getPoint(userEntity.getId());
+            PointEntity point = pointService.getPoint(userEntity.getId())
+                    .orElseThrow(() -> new AssertionError("포인트가 존재하지 않습니다."));
 
             // assert
             assertAll(
-                    () -> assertThat(point).isNotNull(),
-                    () -> assertThat(point.get().getBalance()).isEqualTo(pointEntity.getBalance()),
-                    () -> assertThat(point.get().getUserId()).isEqualTo(pointEntity.getUserId())
+                    () -> assertThat(point.getBalance()).isEqualTo(pointEntity.getBalance()),
+                    () -> assertThat(point.getUserId()).isEqualTo(pointEntity.getUserId())
             );
         }
 
