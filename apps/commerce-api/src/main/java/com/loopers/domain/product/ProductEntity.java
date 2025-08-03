@@ -46,11 +46,17 @@ public class ProductEntity extends BaseEntity {
     }
 
     public void decreaseStock(long quantity){
+        if (quantity <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "차감 수량은 0보다 커야 합니다.");
+        }
         if(quantity > this.stock)
             throw new CoreException(ErrorType.BAD_REQUEST);
         this.stock -= quantity;
     }
     public void increaseStock(long quantity){
+        if (quantity <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "추가 수량은 0보다 커야 합니다.");
+        }
         this.stock += quantity;
     }
 }
