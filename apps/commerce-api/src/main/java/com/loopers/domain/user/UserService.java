@@ -1,7 +1,5 @@
 package com.loopers.domain.user;
 
-import com.loopers.application.user.UserCommand;
-import com.loopers.application.user.UserInfo;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +14,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserEntity getUserEntity(String userId) {
-        return userRepository.findById(userId)
+        return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "[id = " + userId + "] 회원을 찾을 수 없습니다."));
     }
 

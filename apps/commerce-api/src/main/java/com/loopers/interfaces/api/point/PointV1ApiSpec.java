@@ -10,14 +10,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 @Tag(name ="Point V1 API")
 public interface PointV1ApiSpec {
 
-    ApiResponse<PointV1Dto.PointResponse> getPoint(
+    ApiResponse<PointResponse> getPoint(
             @Schema(name = "유저 ID", description = "포인트를 조회할 유저의 ID")
-            String userId
+            Long userId
     );
 
     @PostMapping("/charge")
-    ApiResponse<PointV1Dto.PointResponse> charge(
-            @Schema(name = "X-USER-ID") String userId,
-            @RequestBody PointV1Dto.PointChargeRequest request
+    ApiResponse<PointResponse> charge(
+            @Schema(name = "X-USER-ID") Long userId,
+            @RequestBody PointRequest.PointChargeRequest request
     );
 }

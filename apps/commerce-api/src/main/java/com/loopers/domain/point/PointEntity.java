@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "point")
+@Table(name = "points")
 @Getter
 @NoArgsConstructor
 public class PointEntity {
@@ -16,32 +16,34 @@ public class PointEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private int balance;
+    private Long balance;
 
-    private String userId;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    public PointEntity(int balance, String userId) {
+    public PointEntity(long userId, long balance) {
         if(balance < 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
-        this.balance = balance;
         this.userId = userId;
+        this.balance = balance;
     }
 
-    public void charge(int amount){
+    public void charge(long amount){
         if(amount <= 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
-        int newBalance = this.balance + amount;
-        this.balance = newBalance;
+        this.balance += amount;
     }
 
-    public void use(int amount){
+    public void use(long amount){
         if(amount <= 0){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }
-        int newBalance = this.balance - amount;
-        this.balance = newBalance;
+        if(this.balance < amount){
+            throw new CoreException(ErrorType.BAD_REQUEST);
+        }
+        this.balance -= amount;
     }
 
 }

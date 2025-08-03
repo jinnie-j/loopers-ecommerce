@@ -66,7 +66,7 @@ public class PointV1ApiE2ETest {
             UserEntity userEntity = new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"));
             userJpaRepository.save(userEntity);
 
-            PointEntity pointEntity = new PointEntity(1000,userEntity.getUserId());
+            PointEntity pointEntity = new PointEntity(1000,userEntity.getId());
             pointJpaRepository.save(pointEntity);
 
             HttpHeaders headers = new HttpHeaders();
@@ -74,8 +74,8 @@ public class PointV1ApiE2ETest {
             HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
 
             //act
-            ParameterizedTypeReference<ApiResponse<PointV1Dto.PointResponse>> responseType = new ParameterizedTypeReference<>() {};
-            ResponseEntity<ApiResponse<PointV1Dto.PointResponse>> response =
+            ParameterizedTypeReference<ApiResponse<PointResponse>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<PointResponse>> response =
                     testRestTemplate.exchange(ENDPOINT, HttpMethod.GET, requestEntity, responseType);
 
             //assert
@@ -94,8 +94,8 @@ public class PointV1ApiE2ETest {
             HttpEntity<?> requestEntity = new HttpEntity<>(null);
 
             //act
-            ParameterizedTypeReference<ApiResponse<PointV1Dto.PointResponse>> responseType = new ParameterizedTypeReference<>() {};
-            ResponseEntity<ApiResponse<PointV1Dto.PointResponse>> response =
+            ParameterizedTypeReference<ApiResponse<PointResponse>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<PointResponse>> response =
                     testRestTemplate.exchange(ENDPOINT, HttpMethod.GET, requestEntity, responseType);
 
             //assert
@@ -116,18 +116,18 @@ public class PointV1ApiE2ETest {
             //arrange
             UserEntity userEntity = new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"));
             userJpaRepository.save(userEntity);
-            pointJpaRepository.save(new PointEntity(1000,userEntity.getUserId()));
+            pointJpaRepository.save(new PointEntity(1000,userEntity.getId()));
 
             HttpHeaders headers = new HttpHeaders();
             headers.add("X-USER-ID", userEntity.getUserId());
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(1000);
-            HttpEntity<PointV1Dto.PointChargeRequest> requestEntity = new HttpEntity<>(request, headers);
+            PointRequest.PointChargeRequest request = new PointRequest.PointChargeRequest(1000);
+            HttpEntity<PointRequest.PointChargeRequest> requestEntity = new HttpEntity<>(request, headers);
 
             //act
-            ParameterizedTypeReference<ApiResponse<PointV1Dto.PointResponse>> responseType = new ParameterizedTypeReference<>() {};
-            ResponseEntity<ApiResponse<PointV1Dto.PointResponse>> response = testRestTemplate.exchange(ENDPOINT_POST, HttpMethod.POST, requestEntity, responseType);
+            ParameterizedTypeReference<ApiResponse<PointResponse>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<PointResponse>> response = testRestTemplate.exchange(ENDPOINT_POST, HttpMethod.POST, requestEntity, responseType);
 
             //assert
             assertAll(
@@ -145,12 +145,12 @@ public class PointV1ApiE2ETest {
             headers.set("X-USER-ID", "non_existent_user");
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            PointV1Dto.PointChargeRequest request = new PointV1Dto.PointChargeRequest(1000);
-            HttpEntity<PointV1Dto.PointChargeRequest> requestEntity = new HttpEntity<>(request, headers);
+            PointRequest.PointChargeRequest request = new PointRequest.PointChargeRequest(1000);
+            HttpEntity<PointRequest.PointChargeRequest> requestEntity = new HttpEntity<>(request, headers);
 
             //act
-            ParameterizedTypeReference<ApiResponse<PointV1Dto.PointResponse>> responseType = new ParameterizedTypeReference<>() {};
-            ResponseEntity<ApiResponse<PointV1Dto.PointResponse>> response = testRestTemplate.exchange(ENDPOINT_POST, HttpMethod.POST, requestEntity, responseType);
+            ParameterizedTypeReference<ApiResponse<PointResponse>> responseType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<PointResponse>> response = testRestTemplate.exchange(ENDPOINT_POST, HttpMethod.POST, requestEntity, responseType);
 
             //assert
             assertAll(

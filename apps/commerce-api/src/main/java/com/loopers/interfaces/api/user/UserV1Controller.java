@@ -2,7 +2,7 @@ package com.loopers.interfaces.api.user;
 
 
 import com.loopers.application.user.UserFacade;
-import com.loopers.application.user.UserInfo;
+import com.loopers.domain.user.UserInfo;
 import com.loopers.interfaces.api.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -17,19 +17,19 @@ public class UserV1Controller implements UserV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<UserV1Dto.UserResponse> signUp(@RequestBody UserV1Dto.SignUpRequest signUpRequest
+    public ApiResponse<UserResponse> signUp(@RequestBody UserRequest signUpRequest
     ){
-        final  UserV1Dto.UserResponse response = UserV1Dto.UserResponse.from(userFacade.signUp(signUpRequest.toCommand()));
+        final  UserResponse response = UserResponse.from(userFacade.signUp(signUpRequest.toCommand()));
         return ApiResponse.success(response);
     }
 
     @GetMapping("/{userId}")
     @Override
-    public ApiResponse<UserV1Dto.UserResponse> getUserInfo(
+    public ApiResponse<UserResponse> getUserInfo(
             @PathVariable(value = "userId") String userId
     ) {
         UserInfo info = userFacade.getUserInfo(userId);
-        UserV1Dto.UserResponse response = UserV1Dto.UserResponse.from(info);
+        UserResponse response = UserResponse.from(info);
         return ApiResponse.success(response);
     }
 }

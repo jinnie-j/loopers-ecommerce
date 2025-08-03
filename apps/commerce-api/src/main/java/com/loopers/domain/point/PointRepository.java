@@ -3,5 +3,9 @@ package com.loopers.domain.point;
 import java.util.Optional;
 
 public interface PointRepository {
-    Optional<PointEntity> findByUserId(String userId);
+    Optional<PointEntity> findByUserId(long userId);
+
+    Optional<PointEntity> findById(Long id);
+
+    void save(PointEntity point);
 }

@@ -1,8 +1,6 @@
-package com.loopers.application.point;
+package com.loopers.domain.point;
 
-import com.loopers.domain.point.PointEntity;
-
-public record PointInfo(int balance) {
+public record PointInfo(long balance) {
     public static PointInfo from(PointEntity entity) {
         return new PointInfo(
                 entity.getBalance()
