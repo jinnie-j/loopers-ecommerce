@@ -23,7 +23,6 @@ public class UserV1Controller implements UserV1ApiSpec {
         return ApiResponse.success(response);
     }
 
-    @GetMapping("/{userId}")
     @Override
     public ApiResponse<UserResponse> getUserInfo(
             @PathVariable(value = "userId") String userId
