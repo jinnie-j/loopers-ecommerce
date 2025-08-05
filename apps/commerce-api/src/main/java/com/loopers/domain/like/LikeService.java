@@ -24,7 +24,7 @@ public class LikeService {
                     return LikeInfo.from(saved);
                 });
     }
-
+    @Transactional
     public LikeInfo unlike(LikeCommand.Create likeCommand) {
         long userId = likeCommand.userId();
         long productId = likeCommand.productId();
