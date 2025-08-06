@@ -3,7 +3,9 @@ package com.loopers.application.order;
 import com.loopers.domain.brand.BrandEntity;
 import com.loopers.domain.brand.BrandRepository;
 import com.loopers.domain.order.OrderCommand;
+import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderInfo;
+import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.point.PointEntity;
 import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.product.ProductEntity;
@@ -16,16 +18,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DisplayName("OrderFacade 통합 테스트")
 @SpringBootTest
-@Transactional
 class OrderFacadeIntegrationTest {
 
     @Autowired
@@ -39,6 +42,10 @@ class OrderFacadeIntegrationTest {
 
     @Autowired
     private BrandRepository brandRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
@@ -122,5 +129,46 @@ class OrderFacadeIntegrationTest {
         });
 
         assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
+    }
+
+    @Test
+    @DisplayName("동시에 10개의 주문이 들어와도 재고는 100 -> 0 으로 정확히 차감된다.")
+    void concurrentOrders_reduceStock() throws InterruptedException {
+
+        Long userId = 1L;
+        BrandEntity brand = brandRepository.save(BrandEntity.of("브랜드", "설명"));
+
+        // 상품 초기 재고 100개
+        ProductEntity product = ProductEntity.of("상품", 1000L, 100L, brand.getId());
+        Long productId = productRepository.save(product).getId();
+
+        // 사용자 포인트 세팅 (총 10명 * 10개 = 100개 * 1000원)
+        pointRepository.save(new PointEntity(userId, 100_000));
+
+        int threadCount = 10;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.execute(() -> {
+                try {
+                    OrderCommand.OrderItem item = new OrderCommand.OrderItem(productId, 10L, 1000L);
+                    OrderCommand.Order command = new OrderCommand.Order(userId, List.of(item));
+                    orderFacade.createOrder(command);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        // 상품 재고 확인
+        ProductEntity updated = productRepository.findById(productId).orElseThrow();
+        assertThat(updated.getStock()).isEqualTo(0L);
+
+        // 주문 10개가 생성되었는지 확인
+        List<OrderEntity> orders = orderRepository.findByUserId(userId);
+        assertThat(orders).hasSize(threadCount);
     }
 }

@@ -41,7 +41,7 @@ public class ProductService {
     }
 
     public void decreaseStock(Long productId, Long quantity) {
-        ProductEntity product = productRepository.findById(productId)
+        ProductEntity product = productRepository.findWithLockById(productId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         product.decreaseStock(quantity);
