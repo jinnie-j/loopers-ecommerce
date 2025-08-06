@@ -18,13 +18,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
 @SpringBootTest
-@Transactional
 @DisplayName("PointService 통합 테스트")
 public class PointServiceIntegrationTest {
     /*
@@ -42,6 +45,8 @@ public class PointServiceIntegrationTest {
     private DatabaseCleanUp databaseCleanUp;
     @Autowired
     private PointJpaRepository pointJpaRepository;
+    @Autowired
+    private PointRepository pointRepository;
     @Autowired
     private UserJpaRepository userJpaRepository;
 
@@ -98,5 +103,46 @@ public class PointServiceIntegrationTest {
             assertThatThrownBy(() -> pointService.chargePoint(invalidId, 1000))
                     .isInstanceOf(CoreException.class);
         }
+    }
+
+    @Test
+    @DisplayName("여러 스레드가 동시에 포인트 차감 시, 중복 차감 없이 낙관적 락이 동작한다.")
+    void concurrentPointDeduction_optimisticLock() throws InterruptedException {
+        long userId = 1L;
+
+        int initialBalance = 10000;
+        int deductionAmount = 1000;
+
+        PointEntity point = new PointEntity(userId, initialBalance);
+        pointRepository.save(point);
+        int threadCount = 10;
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        AtomicInteger successCount = new AtomicInteger();
+        AtomicInteger failCount = new AtomicInteger();
+
+        for (int i = 0; i < threadCount; i++) {
+            executor.submit(() -> {
+                try {
+                    pointService.usePoints(userId, (long) deductionAmount);
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        PointEntity updated = pointRepository.findByUserId(userId).orElseThrow();
+        int expectedBalance = initialBalance - (deductionAmount * successCount.get());
+
+        assertThat(updated.getBalance()).isEqualTo(expectedBalance);
+        assertThat(successCount.get()).isLessThanOrEqualTo(threadCount);
+        assertThat(failCount.get()).isGreaterThan(0);
     }
 }
