@@ -5,12 +5,10 @@ import com.loopers.domain.product.ProductService;
 import com.loopers.domain.product.ProductSortType;
 import com.loopers.interfaces.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@RequestMapping("/api/v1/products")
 @RestController
 @RequiredArgsConstructor
 public class ProductV1Controller implements ProductV1ApiSpec{
