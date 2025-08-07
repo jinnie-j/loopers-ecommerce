@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Component
-@Transactional
 public class OrderService {
 
     private final OrderRepository orderRepository;
