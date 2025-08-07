@@ -79,7 +79,7 @@ public class OrderV1ApiE2ETest {
             ProductEntity product = createProduct(10L);
             pointRepository.save(new PointEntity(userId, 10000L));
             OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 2L, product.getPrice()))
+                    List.of(new OrderCommand.OrderItem(product.getId(), 2L, product.getPrice())), null
             );
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
             ParameterizedTypeReference<ApiResponse<OrderResponse.Detail>> responseType = new ParameterizedTypeReference<>() {};
@@ -99,7 +99,7 @@ public class OrderV1ApiE2ETest {
             ProductEntity product = createProduct(1L);
 
             OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 10L, product.getPrice()))
+                    List.of(new OrderCommand.OrderItem(product.getId(), 10L, product.getPrice())), null
             );
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
             ParameterizedTypeReference<ApiResponse<OrderResponse.Detail>> responseType = new ParameterizedTypeReference<>() {};
@@ -115,7 +115,7 @@ public class OrderV1ApiE2ETest {
         @DisplayName("존재하지 않는 상품으로 주문할 경우, 404 Not Found 응답을 반환한다.")
         void createOrder_nonexistentProduct() {
             OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(9999L, 1L, 1000L))
+                    List.of(new OrderCommand.OrderItem(9999L, 1L, 1000L)), null
             );
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
 
@@ -134,7 +134,7 @@ public class OrderV1ApiE2ETest {
         void getOrders_success() {
             ProductEntity product = createProduct(10L);
             OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 1L, product.getPrice()))
+                    List.of(new OrderCommand.OrderItem(product.getId(), 1L, product.getPrice())), null
             );
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
             testRestTemplate.postForEntity(ENDPOINT, entity, ApiResponse.class);
@@ -159,7 +159,7 @@ public class OrderV1ApiE2ETest {
             ProductEntity product = createProduct(10L);
             pointRepository.save(new PointEntity(userId, 10000L));
             OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 1L, product.getPrice()))
+                    List.of(new OrderCommand.OrderItem(product.getId(), 1L, product.getPrice())), null
             );
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
             ParameterizedTypeReference<ApiResponse<OrderResponse.Detail>> responseType = new ParameterizedTypeReference<>() {};

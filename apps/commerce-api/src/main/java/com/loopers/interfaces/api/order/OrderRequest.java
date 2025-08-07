@@ -7,14 +7,14 @@ import java.util.List;
 
 public class OrderRequest {
     public record Create(
-            @NotNull List<OrderCommand.OrderItem> orderItems
+            @NotNull List<OrderCommand.OrderItem> orderItems, Long couponId
     ) {
         public OrderCommand.Order toCommand(Long userId) {
             List<OrderCommand.OrderItem> items = orderItems.stream()
                     .map(item -> new OrderCommand.OrderItem(item.productId(), item.quantity(), item.price()))
                     .toList();
 
-            return new OrderCommand.Order(userId, items);
+            return new OrderCommand.Order(userId, items, couponId);
         }
     }
 

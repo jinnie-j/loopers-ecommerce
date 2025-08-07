@@ -76,7 +76,7 @@ public class OrderServiceIntegrationTest {
                     new OrderCommand.OrderItem(product2.id(), 1L, product2.price())
             );
 
-            var orderCommand = new OrderCommand.Order(userInfo.id(), orderItems);
+            var orderCommand = new OrderCommand.Order(userInfo.id(), orderItems, null);
 
             // act
             OrderInfo orderInfo = orderService.createOrder(orderCommand);
@@ -103,8 +103,8 @@ public class OrderServiceIntegrationTest {
             var orderItems1 = List.of(new OrderCommand.OrderItem(product1.id(), 2L, product1.price()));
             var orderItems2 = List.of(new OrderCommand.OrderItem(product2.id(), 1L, product2.price()));
 
-            orderService.createOrder(new OrderCommand.Order(userInfo.id(), orderItems1));
-            orderService.createOrder(new OrderCommand.Order(userInfo.id(), orderItems2));
+            orderService.createOrder(new OrderCommand.Order(userInfo.id(), orderItems1, null));
+            orderService.createOrder(new OrderCommand.Order(userInfo.id(), orderItems2, null));
 
             // act
             List<OrderInfo> orderInfos = orderService.getOrders(userInfo.id());
@@ -132,7 +132,7 @@ public class OrderServiceIntegrationTest {
                     new OrderCommand.OrderItem(product1.id(), 2L, product1.price()),
                     new OrderCommand.OrderItem(product2.id(), 1L, product2.price())
             );
-            var orderCommand = new OrderCommand.Order(userInfo.id(), orderItems);
+            var orderCommand = new OrderCommand.Order(userInfo.id(), orderItems, null);
             var createdOrder = orderService.createOrder(orderCommand);
 
             // act

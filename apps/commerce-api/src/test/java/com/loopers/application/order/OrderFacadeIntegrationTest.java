@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -62,13 +63,13 @@ class OrderFacadeIntegrationTest {
         long userId = 1L;
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
         ProductEntity product = productRepository.save(
-                new ProductEntity("맥북", 3_000_000L, 10L, brand.getId())
+                ProductEntity.of("맥북", 3_000_000L, 10L, brand.getId())
         );
         pointRepository.save(new PointEntity(userId, 5_000_000L));
 
         OrderCommand.Order command = new OrderCommand.Order(
                 userId,
-                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L))
+                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L)), null
         );
 
         // act
@@ -90,13 +91,13 @@ class OrderFacadeIntegrationTest {
         long userId = 1L;
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
         ProductEntity product = productRepository.save(
-                new ProductEntity("맥북", 3_000_000L, 0L, brand.getId())
+                ProductEntity.of("맥북", 3_000_000L, 0L, brand.getId())
         );
         pointRepository.save(new PointEntity(userId, 5_000_000L));
 
         OrderCommand.Order command = new OrderCommand.Order(
                 userId,
-                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L))
+                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L)), null
         );
 
         // act & assert
@@ -114,13 +115,13 @@ class OrderFacadeIntegrationTest {
         long userId = 1L;
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
         ProductEntity product = productRepository.save(
-                new ProductEntity("맥북", 3_000_000L, 10L, brand.getId())
+                ProductEntity.of("맥북", 3_000_000L, 10L, brand.getId())
         );
         pointRepository.save(new PointEntity(userId, 1_000_000L));
 
         OrderCommand.Order command = new OrderCommand.Order(
                 userId,
-                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L))
+                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L)), null
         );
 
         // act & assert
@@ -153,7 +154,7 @@ class OrderFacadeIntegrationTest {
             executor.execute(() -> {
                 try {
                     OrderCommand.OrderItem item = new OrderCommand.OrderItem(productId, 10L, 1000L);
-                    OrderCommand.Order command = new OrderCommand.Order(userId, List.of(item));
+                    OrderCommand.Order command = new OrderCommand.Order(userId, List.of(item), null);
                     orderFacade.createOrder(command);
                 } finally {
                     latch.countDown();
@@ -171,4 +172,50 @@ class OrderFacadeIntegrationTest {
         List<OrderEntity> orders = orderRepository.findByUserId(userId);
         assertThat(orders).hasSize(threadCount);
     }
+
+    @Test
+    @DisplayName("동일한 유저가 서로 다른 주문을 동시에 수행해도, 포인트가 정상적으로 차감된다")
+    void concurrentDifferentOrders_shouldDeductPointsCorrectly() throws InterruptedException {
+        long userId = 1L;
+        int initialBalance = 10_000;
+        int threadCount = 5; // 주문 수
+        int deductionPerOrder = 1_000;
+
+        // 포인트 저장
+        pointRepository.save(new PointEntity(userId, initialBalance));
+
+        // 브랜드, 상품 생성
+        BrandEntity brand = brandRepository.save(BrandEntity.of("브랜드", "설명"));
+        List<ProductEntity> products = IntStream.range(0, threadCount)
+                .mapToObj(i -> productRepository.save(ProductEntity.of("상품" + i, (long) deductionPerOrder, 10L, brand.getId())))
+                .toList();
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+            final int idx = i;
+            executor.submit(() -> {
+                try {
+                    OrderCommand.Order command = new OrderCommand.Order(
+                            userId,
+                            List.of(new OrderCommand.OrderItem(products.get(idx).getId(), 1L, (long) deductionPerOrder)),
+                            null
+                    );
+
+                    orderFacade.createOrder(command);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+
+        PointEntity updated = pointRepository.findByUserId(userId).orElseThrow();
+        long expectedBalance = initialBalance - (threadCount * deductionPerOrder);
+
+        assertThat(updated.getBalance()).isEqualTo(expectedBalance);
+    }
+
 }
