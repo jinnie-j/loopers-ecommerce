@@ -106,7 +106,7 @@ public class PointServiceIntegrationTest {
     }
 
     @Test
-    @DisplayName("여러 스레드가 동시에 포인트 차감 시, 중복 차감 없이 낙관적 락이 동작한다.")
+    @DisplayName("여러 스레드가 동시에 포인트 차감 시, 포인트가 중복 차감되지 않는다.")
     void concurrentPointDeduction_optimisticLock() throws InterruptedException {
         long userId = 1L;
 

@@ -19,10 +19,7 @@ public class PointEntity extends BaseEntity {
 
     private Long balance;
 
-    @Version
-    private Long version;
-
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id", nullable = false, unique = true)
     private Long userId;
 
     public PointEntity(long userId, long balance) {
