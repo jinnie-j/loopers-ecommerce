@@ -14,13 +14,13 @@ public class CouponService {
 
     public CouponInfo create(CouponCommand.Create command) {
         CouponEntity coupon = CouponEntity.of(
-                command.name(), command.discountType(),command.expiredAt()
+                command.name(), command.discountType(), command.discountAmount(), command.discountRate(),command.expiredAt()
         );
         return CouponInfo.from(couponRepository.save(coupon));
     }
 
     public CouponEntity getAvailableCoupon(Long couponId) {
-        CouponEntity coupon = couponRepository.findById(couponId)
+        CouponEntity coupon = couponRepository.findWithLockById(couponId)
                 .orElseThrow(() -> new CoreException(NOT_FOUND, "존재하지 않는 쿠폰입니다."));
         if (!coupon.isAvailable()) throw new CoreException(BAD_REQUEST, "사용이 불가한 쿠폰입니다.");
         return coupon;

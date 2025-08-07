@@ -2,6 +2,7 @@ package com.loopers.infrastructure.coupon;
 
 import com.loopers.domain.coupon.CouponEntity;
 import com.loopers.domain.coupon.CouponRepository;
+import com.loopers.domain.point.PointEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -22,4 +23,9 @@ public class CouponRepositoryImpl implements CouponRepository {
     public CouponEntity save(CouponEntity couponEntity) {
         return couponJpaRepository.save(couponEntity);
     }
-}
+
+    @Override
+    public Optional<CouponEntity> findWithLockById(long couponId) {
+        return couponJpaRepository.findWithLockById(couponId);
+    }}
+
