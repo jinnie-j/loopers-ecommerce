@@ -14,7 +14,7 @@ public class CouponV1Controller implements CouponV1ApiSpec{
 
     @Override
     public ApiResponse<Long> applyCoupon(@RequestBody CouponRequest.Apply request) {
-        long discounted = couponFacade.applyCoupon(request.userId(), request.couponId(), request.price());
+        long discounted = couponFacade.applyCoupon(request.toCommand());
         return ApiResponse.success(discounted);
     }
 }

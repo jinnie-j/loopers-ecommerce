@@ -20,6 +20,8 @@ public class CouponFacade {
         CouponEntity coupon = couponService.getAvailableCoupon(command.couponId());
         long discountedPrice = couponService.applyDiscount(coupon, command.originalPrice());
 
+        coupon.markAsUsed();
+
         userCouponService.useCoupon(new UserCouponCommand.Use(command.userId(), command.couponId()));
         return discountedPrice;
     }

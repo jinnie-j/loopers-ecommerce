@@ -4,6 +4,6 @@ import java.time.LocalDateTime;
 
 public class CouponCommand {
 
-    public record Create(String name, DiscountType discountType, LocalDateTime expiredAt) {}
+    public record Create(String name, DiscountType discountType,Long discountAmount, Double discountRate, LocalDateTime expiredAt) {}
 
 }
