@@ -7,4 +7,5 @@ public interface UserCouponRepository {
     Optional<UserCouponEntity> findByUserIdAndCouponId(Long userId, Long couponId);
     UserCouponEntity save(UserCouponEntity userCoupon);
     UserCouponEntity findById(long id);
+    Optional<UserCouponEntity> findWithLockByUserIdAndCouponId(Long userId, Long couponId);
 }

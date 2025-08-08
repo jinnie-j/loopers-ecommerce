@@ -26,4 +26,8 @@ public class UserCouponRepositoryImpl implements UserCouponRepository {
     public UserCouponEntity findById(long id) {
         return userCouponJpaRepository.findById(id).orElse(null);
     }
+
+    public Optional<UserCouponEntity> findWithLockByUserIdAndCouponId(Long userId, Long couponId) {
+        return userCouponJpaRepository.findWithLockByUserIdAndCouponId(userId, couponId);
+    }
 }
