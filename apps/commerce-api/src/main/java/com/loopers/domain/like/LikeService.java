@@ -1,6 +1,7 @@
 package com.loopers.domain.like;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,27 +15,22 @@ public class LikeService {
     private final LikeRepository likeRepository;
 
     @Transactional
-    public LikeInfo like(LikeCommand.Create likeCommand) {
-        final LikeEntity likeEntity = LikeEntity.of(likeCommand.userId(), likeCommand.productId());
+    public LikeInfo like(LikeCommand.Create cmd) {
+        LikeEntity entity = LikeEntity.of(cmd.userId(), cmd.productId());
+        try {
+            LikeEntity saved = likeRepository.save(entity);
+            return LikeInfo.from(saved);
+        } catch (DataIntegrityViolationException e) {
 
-        return likeRepository.find(likeEntity.getUserId(), likeEntity.getProductId())
-                .map(LikeInfo::from)
-                .orElseGet(() -> {
-                    LikeEntity saved = likeRepository.save(likeEntity);
-                    return LikeInfo.from(saved);
-                });
+            return likeRepository.find(cmd.userId(), cmd.productId())
+                    .map(LikeInfo::from)
+                    .orElseGet(() -> LikeInfo.liked(cmd.userId(), cmd.productId()));
+        }
     }
     @Transactional
     public LikeInfo unlike(LikeCommand.Create likeCommand) {
-        long userId = likeCommand.userId();
-        long productId = likeCommand.productId();
-
-        boolean exists = likeRepository.find(userId, productId).isPresent();
-        if (exists) {
-            likeRepository.deleteByUserIdAndProductId(userId, productId);
-        }
-
-        return LikeInfo.unliked(userId, productId);
+        likeRepository.deleteByUserIdAndProductId(likeCommand.userId(), likeCommand.productId());
+        return LikeInfo.unliked(likeCommand.userId(), likeCommand.productId());
     }
 
     public Collection<LikeInfo> getLikesByUserId(long userId) {
