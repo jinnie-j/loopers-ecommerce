@@ -5,6 +5,7 @@ import com.loopers.domain.order.OrderInfo;
 import com.loopers.domain.order.OrderService;
 import com.loopers.interfaces.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public class OrderV1Controller implements OrderV1ApiSpec {
     }
 
     @Override
-    public ApiResponse<List<OrderResponse.Detail>> getOrders(Long userId) {
+    public ApiResponse<List<OrderResponse.Detail>> getOrders(@RequestHeader("X-USER-ID") Long userId) {
         List<OrderInfo> orderInfos = orderService.getOrders(userId);
         List<OrderResponse.Detail> response = orderInfos.stream()
                 .map(OrderResponse.Detail::from)

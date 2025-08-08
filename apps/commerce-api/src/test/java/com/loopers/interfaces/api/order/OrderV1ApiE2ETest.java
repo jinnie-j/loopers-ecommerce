@@ -1,6 +1,8 @@
 package com.loopers.interfaces.api.order;
 
 import com.loopers.domain.order.OrderCommand;
+import com.loopers.domain.order.OrderInfo;
+import com.loopers.domain.order.OrderService;
 import com.loopers.domain.point.PointEntity;
 import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.product.ProductEntity;
@@ -41,6 +43,7 @@ public class OrderV1ApiE2ETest {
     private final DatabaseCleanUp databaseCleanUp;
     private final ProductRepository productRepository;
     private final PointRepository pointRepository;
+    private final OrderService orderService;
 
     @AfterEach
     void tearDown() {
@@ -48,11 +51,12 @@ public class OrderV1ApiE2ETest {
     }
 
     @Autowired
-    public OrderV1ApiE2ETest(TestRestTemplate testRestTemplate, ProductRepository productRepository, PointRepository pointRepository, DatabaseCleanUp databaseCleanUp) {
+    public OrderV1ApiE2ETest(TestRestTemplate testRestTemplate, ProductRepository productRepository, PointRepository pointRepository, DatabaseCleanUp databaseCleanUp, OrderService orderService) {
         this.testRestTemplate = testRestTemplate;
         this.productRepository = productRepository;
         this.pointRepository = pointRepository;
         this.databaseCleanUp = databaseCleanUp;
+        this.orderService = orderService;
     }
     private static final String ENDPOINT = "/api/v1/orders";
 
@@ -74,23 +78,44 @@ public class OrderV1ApiE2ETest {
 
         @Test
         @DisplayName("존재하는 상품으로 주문을 생성하면, 주문 정보가 반환된다.")
-        void createOrder_success() {
-            //arrange
+        void getOrders_success() {
+
             ProductEntity product = createProduct(10L);
             pointRepository.save(new PointEntity(userId, 10000L));
-            OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 2L, product.getPrice())), null
+
+            // 주문 생성
+            OrderRequest.Create req = new OrderRequest.Create(
+                    List.of(new OrderCommand.OrderItem(product.getId(), 1L, product.getPrice())),
+                    null
             );
-            HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
-            ParameterizedTypeReference<ApiResponse<OrderResponse.Detail>> responseType = new ParameterizedTypeReference<>() {};
+            HttpHeaders headers = createHeaders();
+            HttpEntity<OrderRequest.Create> createEntity = new HttpEntity<>(req, headers);
 
-            // act
-            ResponseEntity<ApiResponse<OrderResponse.Detail>> response =
-                    testRestTemplate.exchange(ENDPOINT, HttpMethod.POST, entity, responseType);
+            ParameterizedTypeReference<ApiResponse<OrderResponse.Detail>> createType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<OrderResponse.Detail>> created = testRestTemplate.exchange(
+                    ENDPOINT, HttpMethod.POST, createEntity, createType
+            );
 
-            //assert
-            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-            assertThat(response.getBody()).isNotNull();
+            assertThat(created.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(created.getBody()).isNotNull();
+            Long createdOrderId = created.getBody().data().orderId();
+            assertThat(createdOrderId).isNotNull();
+
+            ParameterizedTypeReference<ApiResponse<List<OrderResponse.Detail>>> listType = new ParameterizedTypeReference<>() {};
+            ResponseEntity<ApiResponse<List<OrderResponse.Detail>>> listResp = testRestTemplate.exchange(
+                    ENDPOINT, HttpMethod.GET, new HttpEntity<>(headers), listType
+            );
+
+            assertThat(listResp.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertThat(listResp.getBody()).isNotNull();
+            List<OrderResponse.Detail> list = listResp.getBody().data();
+            assertThat(list).isNotEmpty();
+            assertThat(list)
+                    .anySatisfy(o -> {
+                        assertThat(o.orderId()).isEqualTo(createdOrderId);
+                        assertThat(o.orderItems()).hasSize(1);
+                        assertThat(o.orderItems().get(0).productId()).isEqualTo(product.getId());
+                    });
         }
 
         @Test

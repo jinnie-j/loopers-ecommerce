@@ -2,14 +2,15 @@ package com.loopers.domain.order;
 
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Component
+@Transactional
 public class OrderService {
 
     private final OrderRepository orderRepository;
@@ -24,10 +25,10 @@ public class OrderService {
     }
 
     public List<OrderInfo> getOrders(Long userId) {
-        List<OrderEntity> orderEntities = orderRepository.findByUserId(userId);
-
-        return orderEntities.stream().map(OrderInfo::from).collect(Collectors.toList());
-
+        var orders = orderRepository.findByUserId(userId);
+        return orders.stream()
+                .map(OrderInfo::from)
+                .toList();
     }
 
     public OrderInfo getOrder(Long orderId) {

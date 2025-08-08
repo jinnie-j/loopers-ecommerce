@@ -6,14 +6,16 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
-@Table(name = "order_items")
+@Table(name = "order_item")
 @Getter
 public class OrderItemEntity {
     @Id
+    @Column(name = "order_item_id")
     @GeneratedValue
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
     private OrderEntity order;
 
     private Long productId;
