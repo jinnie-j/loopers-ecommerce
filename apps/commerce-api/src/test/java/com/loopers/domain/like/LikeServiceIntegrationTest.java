@@ -1,7 +1,7 @@
 package com.loopers.domain.like;
 
-import com.loopers.domain.brand.BrandInfo;
-import com.loopers.domain.product.ProductInfo;
+import com.loopers.domain.brand.*;
+import com.loopers.domain.product.*;
 import com.loopers.domain.user.UserInfo;
 import com.loopers.domain.brand.BrandCommand;
 import com.loopers.domain.brand.BrandService;
@@ -13,17 +13,15 @@ import com.loopers.domain.user.UserService;
 import com.loopers.domain.user.vo.Birth;
 import com.loopers.domain.user.vo.Email;
 import com.loopers.utils.DatabaseCleanUp;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@Transactional
 @DisplayName("LikeService 통합 테스트")
 public class LikeServiceIntegrationTest {
 

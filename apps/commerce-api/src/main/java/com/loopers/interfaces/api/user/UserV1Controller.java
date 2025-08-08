@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/users")
 public class UserV1Controller implements UserV1ApiSpec {
 
     private final UserFacade userFacade;
@@ -23,7 +22,6 @@ public class UserV1Controller implements UserV1ApiSpec {
         return ApiResponse.success(response);
     }
 
-    @GetMapping("/{userId}")
     @Override
     public ApiResponse<UserResponse> getUserInfo(
             @PathVariable(value = "userId") String userId

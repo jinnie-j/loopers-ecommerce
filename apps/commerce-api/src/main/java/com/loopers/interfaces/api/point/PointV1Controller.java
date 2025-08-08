@@ -34,7 +34,6 @@ public class PointV1Controller implements PointV1ApiSpec{
         return ApiResponse.success(response);
     }
 
-    @PostMapping("/charge")
     @Override
     public ApiResponse<PointResponse> charge(
             @RequestHeader(value = "X-USER-ID") Long userId,

@@ -22,7 +22,6 @@ import static org.mockito.Mockito.verify;
 
 
 @SpringBootTest
-@Transactional
 @DisplayName("UserService 통합 테스트")
 public class UserServiceIntegrationTest {
 

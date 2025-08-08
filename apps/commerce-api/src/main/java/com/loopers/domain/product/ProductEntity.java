@@ -21,7 +21,7 @@ public class ProductEntity extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
 
-    public ProductEntity(String name, Long price, Long stock, Long brandId){
+    private ProductEntity(String name, Long price, Long stock, Long brandId){
         if(name == null || name.isBlank()){
             throw new CoreException(ErrorType.BAD_REQUEST);
         }

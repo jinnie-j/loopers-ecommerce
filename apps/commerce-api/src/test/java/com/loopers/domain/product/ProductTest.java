@@ -20,7 +20,7 @@ public class ProductTest {
         @DisplayName("상품 생성에 성공한다.")
         void createProduct_success() {
             //arrange
-            ProductEntity productEntity = new ProductEntity("shirt", 15000L, 100L, 1L);
+            ProductEntity productEntity = ProductEntity.of("shirt", 15000L, 100L, 1L);
 
             assertThat(productEntity.getStatus()).isEqualTo(ProductStatus.ON_SALE);
         }
@@ -29,7 +29,7 @@ public class ProductTest {
         @DisplayName("상품 이름이 null이면 BAD REQUEST 예외를 반환한다.")
         void fail_whenNameIsNull() {
             CoreException exception = assertThrows(CoreException.class, () ->
-                    new ProductEntity(null, 15000L, 100L, 1L));
+                    ProductEntity.of(null, 15000L, 100L, 1L));
 
             assertEquals(ErrorType.BAD_REQUEST, exception.getErrorType());
         }
@@ -38,7 +38,7 @@ public class ProductTest {
         @DisplayName("상품 가격이 음수이면 BAD REQUEST 예외를 반환한다.")
         void fail_whenPriceIsNegative() {
             CoreException exception = assertThrows(CoreException.class, () ->
-                    new ProductEntity("skirt", -1000L, 100L, 1L));
+                    ProductEntity.of("skirt", -1000L, 100L, 1L));
 
             assertEquals(ErrorType.BAD_REQUEST, exception.getErrorType());
         }
@@ -47,7 +47,7 @@ public class ProductTest {
         @DisplayName("상품 재고가 음수이면 BAD REQUEST 예외를 반환한다.")
         void fail_whenStockIsNegative() {
             CoreException exception = assertThrows(CoreException.class, () ->
-                    new ProductEntity("skirt", 15000L, -100L, 1L));
+                    ProductEntity.of("skirt", 15000L, -100L, 1L));
 
             assertEquals(ErrorType.BAD_REQUEST, exception.getErrorType());
         }
