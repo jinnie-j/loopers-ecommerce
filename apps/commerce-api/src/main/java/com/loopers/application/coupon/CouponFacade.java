@@ -15,7 +15,6 @@ public class CouponFacade {
     private final UserCouponService userCouponService;
 
     public long applyCoupon(UserCouponCommand.Apply command) {
-        userCouponService.validateOwnedAndUnused(new UserCouponCommand.Use(command.userId(), command.couponId()));
 
         CouponEntity coupon = couponService.getAvailableCoupon(command.couponId());
         long discountedPrice = couponService.applyDiscount(coupon, command.originalPrice());

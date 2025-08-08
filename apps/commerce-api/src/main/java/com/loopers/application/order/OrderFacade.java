@@ -39,10 +39,6 @@ public class OrderFacade {
         long discountedAmount = 0L;
         if (command.couponId() != null) {
 
-            userCouponService.validateOwnedAndUnused(
-                    new UserCouponCommand.Use(command.userId(), command.couponId())
-            );
-
             CouponEntity coupon = couponService.getAvailableCoupon(command.couponId());
 
             discountedAmount = couponService.applyDiscount(coupon, totalPrice);
