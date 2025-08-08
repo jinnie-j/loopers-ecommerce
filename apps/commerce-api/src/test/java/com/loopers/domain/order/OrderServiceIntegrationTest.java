@@ -14,7 +14,8 @@ import com.loopers.domain.user.vo.Birth;
 import com.loopers.domain.user.vo.Email;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
-import jakarta.transaction.Transactional;
+import com.loopers.utils.DatabaseCleanUp;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
-@Transactional
 @DisplayName("OrderService 통합 테스트")
 public class OrderServiceIntegrationTest {
 
@@ -41,6 +41,15 @@ public class OrderServiceIntegrationTest {
     private BrandService brandService;
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private DatabaseCleanUp databaseCleanUp;
+
+    @AfterEach
+    void tearDown() {
+        databaseCleanUp.truncateAllTables();
+    }
+
 
     private UserInfo createUser() {
         var command = new UserCommand.SignUp("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com")

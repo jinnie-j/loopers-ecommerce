@@ -10,11 +10,10 @@ import static com.loopers.support.error.ErrorType.NOT_FOUND;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
 public class UserCouponService {
     private final UserCouponRepository userCouponRepository;
 
-
+    @Transactional
     public void useCoupon(UserCouponCommand.Use command) {
         UserCouponEntity userCoupon = userCouponRepository
                 .findWithLockByUserIdAndCouponId(command.userId(), command.couponId()) // 비관적 락
