@@ -3,6 +3,7 @@ package com.loopers.domain.coupon;
 import com.loopers.support.error.CoreException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import static com.loopers.support.error.ErrorType.BAD_REQUEST;
 import static com.loopers.support.error.ErrorType.NOT_FOUND;
@@ -12,6 +13,7 @@ import static com.loopers.support.error.ErrorType.NOT_FOUND;
 public class CouponService {
     private final CouponRepository couponRepository;
 
+    @Transactional
     public CouponInfo create(CouponCommand.Create command) {
         CouponEntity coupon = CouponEntity.of(
                 command.name(), command.discountType(), command.discountAmount(), command.discountRate(),command.expiredAt()
@@ -19,6 +21,7 @@ public class CouponService {
         return CouponInfo.from(couponRepository.save(coupon));
     }
 
+    @Transactional
     public CouponEntity getAvailableCoupon(Long couponId) {
         CouponEntity coupon = couponRepository.findWithLockById(couponId)
                 .orElseThrow(() -> new CoreException(NOT_FOUND, "존재하지 않는 쿠폰입니다."));
