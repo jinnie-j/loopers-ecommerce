@@ -45,7 +45,7 @@ public class CouponEntity extends BaseEntity {
             throw new CoreException(ErrorType.BAD_REQUEST, "쿠폰 만료일은 필수입니다.");
         }
         this.name = name;
-        this.disCountType = DiscountType.FIXED_AMOUNT;
+        this.disCountType = disCountType;
         this.couponStatus = CouponStatus.AVAILABLE;
         this.discountAmount = discountAmount;
         this.discountRate = discountRate;
