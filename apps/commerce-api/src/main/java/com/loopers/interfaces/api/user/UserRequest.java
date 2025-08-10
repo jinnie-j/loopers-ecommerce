@@ -4,21 +4,21 @@ import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserCommand;
 import com.loopers.domain.user.vo.Birth;
 import com.loopers.domain.user.vo.Email;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record UserRequest(
-        @NotNull
+        @NotBlank
         String userId,
-        @NotNull
+        @NotBlank
         String name,
-        @NotNull
+        @NotBlank
         String gender,
-        @NotNull
+        @NotBlank
         String birth,
-        @NotNull
+        @NotBlank
         String email
 ) {
     public UserCommand.SignUp toCommand() {
-        return new UserCommand.SignUp(userId, name, Gender.valueOf(gender), Birth.of(birth), Email.of(email));
+        return new UserCommand.SignUp(userId, name, Gender.from(gender), Birth.of(birth), Email.of(email));
     }
 }

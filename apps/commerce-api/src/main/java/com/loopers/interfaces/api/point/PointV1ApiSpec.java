@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public interface PointV1ApiSpec {
 
     ApiResponse<PointResponse> getPoint(
-            @Schema(name = "유저 ID", description = "포인트를 조회할 유저의 ID")
+            @Schema(name = "X-USER-ID")
             Long userId
     );
 

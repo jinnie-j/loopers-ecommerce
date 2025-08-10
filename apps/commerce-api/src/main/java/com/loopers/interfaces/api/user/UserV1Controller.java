@@ -5,6 +5,7 @@ import com.loopers.application.user.UserFacade;
 import com.loopers.domain.user.UserInfo;
 import com.loopers.interfaces.api.ApiResponse;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +17,7 @@ public class UserV1Controller implements UserV1ApiSpec {
 
     @PostMapping
     @Override
-    public ApiResponse<UserResponse> signUp(@RequestBody UserRequest signUpRequest
+    public ApiResponse<UserResponse> signUp(@RequestBody @Valid UserRequest signUpRequest
     ){
         final  UserResponse response = UserResponse.from(userFacade.signUp(signUpRequest.toCommand()));
         return ApiResponse.success(response);

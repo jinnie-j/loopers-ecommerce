@@ -11,10 +11,15 @@ public record UserResponse(
 ) {
 
     public static UserResponse from(UserInfo userInfo) {
+        String gender = switch (userInfo.gender()){
+            case FEMALE -> "F";
+            case MALE -> "M";
+            default -> null;
+        };
         return new UserResponse(
                 userInfo.userId(),
                 userInfo.name(),
-                userInfo.gender().name(),
+                gender,
                 userInfo.birth().getValue(),
                 userInfo.email().getValue()
         );

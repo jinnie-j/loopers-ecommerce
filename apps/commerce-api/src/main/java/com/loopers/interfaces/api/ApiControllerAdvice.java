@@ -8,6 +8,7 @@ import com.loopers.support.error.ErrorType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -34,6 +35,12 @@ public class ApiControllerAdvice {
     public ResponseEntity<ApiResponse<?>> handleMissingRequestHeader(MissingRequestHeaderException ex) {
         String message = String.format("필수 헤더 누락: %s", ex.getHeaderName());
         return failureResponse(ErrorType.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleValidation(MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        return failureResponse(ErrorType.BAD_REQUEST, errorMessage);
     }
 
     @ExceptionHandler

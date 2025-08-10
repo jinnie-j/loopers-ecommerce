@@ -1,6 +1,3 @@
-plugins {
-    kotlin("jvm") version "2.1.21"
-}
 dependencies {
     // add-ons
     implementation(project(":modules:jpa"))
@@ -20,12 +17,4 @@ dependencies {
 
     // test-fixtures
     testImplementation(testFixtures(project(":modules:jpa")))
-    implementation(kotlin("stdlib-jdk8"))
-    testImplementation(kotlin("test"))
-}
-repositories {
-    mavenCentral()
-}
-kotlin {
-    jvmToolchain(21)
 }

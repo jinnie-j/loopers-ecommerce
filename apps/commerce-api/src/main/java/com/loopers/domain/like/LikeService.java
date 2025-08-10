@@ -1,7 +1,6 @@
 package com.loopers.domain.like;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,17 +15,13 @@ public class LikeService {
 
     @Transactional
     public LikeInfo like(LikeCommand.Create cmd) {
-        LikeEntity entity = LikeEntity.of(cmd.userId(), cmd.productId());
-        try {
-            LikeEntity saved = likeRepository.save(entity);
-            return LikeInfo.from(saved);
-        } catch (DataIntegrityViolationException e) {
-
-            return likeRepository.find(cmd.userId(), cmd.productId())
-                    .map(LikeInfo::from)
-                    .orElseGet(() -> LikeInfo.liked(cmd.userId(), cmd.productId()));
+        boolean exists = likeRepository.exists(cmd.userId(), cmd.productId());
+        if (!exists) {
+            likeRepository.save(LikeEntity.of(cmd.userId(), cmd.productId()));
         }
+        return LikeInfo.liked(cmd.userId(), cmd.productId());
     }
+
     @Transactional
     public LikeInfo unlike(LikeCommand.Create likeCommand) {
         likeRepository.deleteByUserIdAndProductId(likeCommand.userId(), likeCommand.productId());
