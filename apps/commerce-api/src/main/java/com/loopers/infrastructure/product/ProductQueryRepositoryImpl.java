@@ -3,11 +3,16 @@ package com.loopers.infrastructure.product;
 import com.loopers.application.product.ProductQueryRepository;
 import com.loopers.domain.like.QLikeEntity;
 import com.loopers.domain.product.ProductEntity;
+import com.loopers.domain.product.ProductQueryCommand;
 import com.loopers.domain.product.ProductSortType;
 import com.loopers.domain.product.QProductEntity;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
@@ -41,5 +46,41 @@ public class ProductQueryRepositoryImpl implements ProductQueryRepository {
         query.offset(pageable.getOffset()).limit(pageable.getPageSize());
 
         return query.fetch();
+    }
+
+    @Override
+    public Page<ProductEntity> searchProducts(ProductQueryCommand.SearchProducts command) {
+        QProductEntity qProduct = QProductEntity.productEntity;
+
+        int page = command.pageOrDefault();
+        int size = command.sizeOrDefault();
+
+        BooleanBuilder where = new BooleanBuilder();
+        if (command.hasBrandFilter()) {
+            where.and(qProduct.brandId.eq(command.getBrandId()));
+        }
+
+        JPQLQuery<ProductEntity> jpqlQuery = queryFactory
+                .selectFrom(qProduct)
+                .where(where);
+
+        switch (command.sortOrDefault()) {
+            case LIKES_DESC -> jpqlQuery.orderBy(qProduct.likeCount.desc(), qProduct.id.desc());
+            case PRICE_ASC  -> jpqlQuery.orderBy(qProduct.price.asc(),     qProduct.id.desc());
+            case LATEST     -> jpqlQuery.orderBy(qProduct.createdAt.desc(), qProduct.id.desc());
+        }
+
+        List<ProductEntity> content = jpqlQuery
+                .offset((long) page * size)
+                .limit(size)
+                .fetch();
+
+        Long total = queryFactory
+                .select(qProduct.id.count())
+                .from(qProduct)
+                .where(where)
+                .fetchOne();
+
+        return new PageImpl<>(content, PageRequest.of(page, size), total == null ? 0 : total);
     }
 }

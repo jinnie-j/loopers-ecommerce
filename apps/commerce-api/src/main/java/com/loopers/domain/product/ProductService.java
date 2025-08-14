@@ -4,9 +4,11 @@ import com.loopers.application.product.ProductQueryRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -38,6 +40,11 @@ public class ProductService {
         return products.stream()
                 .map(ProductInfo::from)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductEntity> searchProducts(ProductQueryCommand.SearchProducts cmd) {
+        return productQueryRepository.searchProducts(cmd); // ★ 여기서 호출
     }
 
     public void decreaseStock(Long productId, Long quantity) {
