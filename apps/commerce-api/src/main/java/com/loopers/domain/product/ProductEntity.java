@@ -8,18 +8,29 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "products")
+@Table(
+        name = "products",
+        indexes = {
+                @Index(name = "idx_prod_brand_like_id", columnList = "brand_id, like_count DESC, id DESC"),
+                @Index(name = "idx_prod_brand_created_id", columnList = "brand_id, created_at DESC, id DESC")
+        }
+)
 @Getter
 @NoArgsConstructor
 public class ProductEntity extends BaseEntity {
+
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private Long price;
     private Long stock;
+    @Column(name = "brand_id")
     private Long brandId;
     @Enumerated(EnumType.STRING)
     private ProductStatus status;
+    @Column(name = "like_count", nullable = false)
+    private long likeCount;
 
     private ProductEntity(String name, Long price, Long stock, Long brandId){
         if(name == null || name.isBlank()){
