@@ -1,7 +1,10 @@
 package com.loopers.domain.like;
 
+import com.loopers.config.redis.RedisConfig;
 import com.loopers.infrastructure.product.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +20,10 @@ public class LikeService {
     private final ProductJpaRepository productJpaRepository;
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = RedisConfig.PRODUCT_DETAIL, key = "#cmd.productId()"),
+            @CacheEvict(cacheNames = RedisConfig.PRODUCT_LIST,   allEntries = true)
+    })
     public LikeInfo like(LikeCommand.Create cmd) {
         Long userId = cmd.userId();
         Long productId = cmd.productId();
@@ -34,6 +41,10 @@ public class LikeService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(cacheNames = RedisConfig.PRODUCT_DETAIL, key = "#cmd.productId()"),
+            @CacheEvict(cacheNames = RedisConfig.PRODUCT_LIST,   allEntries = true)
+    })
     public LikeInfo unlike(LikeCommand.Create likeCommand) {
         Long userId = likeCommand.userId();
         Long productId = likeCommand.productId();
