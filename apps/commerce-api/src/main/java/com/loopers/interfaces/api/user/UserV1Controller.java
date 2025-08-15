@@ -5,25 +5,24 @@ import com.loopers.application.user.UserFacade;
 import com.loopers.domain.user.UserInfo;
 import com.loopers.interfaces.api.ApiResponse;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/users")
 public class UserV1Controller implements UserV1ApiSpec {
 
     private final UserFacade userFacade;
 
     @PostMapping
     @Override
-    public ApiResponse<UserResponse> signUp(@RequestBody UserRequest signUpRequest
+    public ApiResponse<UserResponse> signUp(@RequestBody @Valid UserRequest signUpRequest
     ){
         final  UserResponse response = UserResponse.from(userFacade.signUp(signUpRequest.toCommand()));
         return ApiResponse.success(response);
     }
 
-    @GetMapping("/{userId}")
     @Override
     public ApiResponse<UserResponse> getUserInfo(
             @PathVariable(value = "userId") String userId

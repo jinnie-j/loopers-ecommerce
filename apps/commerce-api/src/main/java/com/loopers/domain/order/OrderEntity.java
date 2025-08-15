@@ -16,7 +16,7 @@ public class OrderEntity extends BaseEntity {
     @Column(nullable = false)
     private Long userId;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private final List<OrderItemEntity> orderItems = new ArrayList<>();
 
     private Long totalPrice;

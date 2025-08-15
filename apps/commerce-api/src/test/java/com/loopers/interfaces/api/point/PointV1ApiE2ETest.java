@@ -70,7 +70,7 @@ public class PointV1ApiE2ETest {
             pointJpaRepository.save(pointEntity);
 
             HttpHeaders headers = new HttpHeaders();
-            headers.add("X-USER-ID", userEntity.getUserId());
+            headers.set("X-USER-ID", String.valueOf(userEntity.getId()));
             HttpEntity<Object> requestEntity = new HttpEntity<>(headers);
 
             //act
@@ -83,7 +83,6 @@ public class PointV1ApiE2ETest {
                     () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK),
                     () -> assertThat(response.getBody().data().balance()).isEqualTo(pointEntity.getBalance())
             );
-
         }
 
         @DisplayName("X-USER-ID 헤더가 없을 경우, 400 Bad Request 응답을 반환한다.")
@@ -116,10 +115,9 @@ public class PointV1ApiE2ETest {
             //arrange
             UserEntity userEntity = new UserEntity("jinnie", "지은", Gender.FEMALE, Birth.of("1997-01-27"), Email.of("jinnie@naver.com"));
             userJpaRepository.save(userEntity);
-            pointJpaRepository.save(new PointEntity(1000,userEntity.getId()));
-
+            pointJpaRepository.save(new PointEntity(userEntity.getId(),1000L));
             HttpHeaders headers = new HttpHeaders();
-            headers.add("X-USER-ID", userEntity.getUserId());
+            headers.add("X-USER-ID", String.valueOf(userEntity.getId()));
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             PointRequest.PointChargeRequest request = new PointRequest.PointChargeRequest(1000);
@@ -142,7 +140,7 @@ public class PointV1ApiE2ETest {
         void returnsNotFound_whenUserDoesNotExist() {
             //arrange
             HttpHeaders headers = new HttpHeaders();
-            headers.set("X-USER-ID", "non_existent_user");
+            headers.set("X-USER-ID", String.valueOf(999_999L));
             headers.setContentType(MediaType.APPLICATION_JSON);
 
             PointRequest.PointChargeRequest request = new PointRequest.PointChargeRequest(1000);
@@ -161,4 +159,4 @@ public class PointV1ApiE2ETest {
             );
         }
     }
-    }
+}

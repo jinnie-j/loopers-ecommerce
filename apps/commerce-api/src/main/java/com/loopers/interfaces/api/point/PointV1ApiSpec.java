@@ -6,12 +6,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Tag(name ="Point V1 API")
+@RequestMapping("/api/v1/points")
 public interface PointV1ApiSpec {
 
     ApiResponse<PointResponse> getPoint(
-            @Schema(name = "유저 ID", description = "포인트를 조회할 유저의 ID")
+            @Schema(name = "X-USER-ID")
             Long userId
     );
 

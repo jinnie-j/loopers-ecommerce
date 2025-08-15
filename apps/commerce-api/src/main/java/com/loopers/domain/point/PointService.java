@@ -19,8 +19,9 @@ public class PointService {
         return pointRepository.findByUserId(userId);
     }
 
+    @Transactional
     public PointEntity chargePoint(long userId, int amount) {
-        PointEntity pointEntity = pointRepository.findByUserId(userId)
+        PointEntity pointEntity = pointRepository.findWithLockByUserId(userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "[id = " + userId + "] 의 포인트를 찾을 수 없습니다."));
 
         pointEntity.charge(amount);
@@ -28,7 +29,7 @@ public class PointService {
     }
 
     public void usePoints(long userId, Long amount) {
-        PointEntity point = pointRepository.findByUserId(userId)
+        PointEntity point = pointRepository.findWithLockByUserId(userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "포인트 정보를 찾을 수 없습니다."));
 
         if (point.getBalance() < amount) {

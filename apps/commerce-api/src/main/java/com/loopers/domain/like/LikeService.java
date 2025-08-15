@@ -14,27 +14,18 @@ public class LikeService {
     private final LikeRepository likeRepository;
 
     @Transactional
-    public LikeInfo like(LikeCommand.Create likeCommand) {
-        final LikeEntity likeEntity = LikeEntity.of(likeCommand.userId(), likeCommand.productId());
-
-        return likeRepository.find(likeEntity.getUserId(), likeEntity.getProductId())
-                .map(LikeInfo::from)
-                .orElseGet(() -> {
-                    LikeEntity saved = likeRepository.save(likeEntity);
-                    return LikeInfo.from(saved);
-                });
+    public LikeInfo like(LikeCommand.Create cmd) {
+        boolean exists = likeRepository.exists(cmd.userId(), cmd.productId());
+        if (!exists) {
+            likeRepository.save(LikeEntity.of(cmd.userId(), cmd.productId()));
+        }
+        return LikeInfo.liked(cmd.userId(), cmd.productId());
     }
 
+    @Transactional
     public LikeInfo unlike(LikeCommand.Create likeCommand) {
-        long userId = likeCommand.userId();
-        long productId = likeCommand.productId();
-
-        boolean exists = likeRepository.find(userId, productId).isPresent();
-        if (exists) {
-            likeRepository.deleteByUserIdAndProductId(userId, productId);
-        }
-
-        return LikeInfo.unliked(userId, productId);
+        likeRepository.deleteByUserIdAndProductId(likeCommand.userId(), likeCommand.productId());
+        return LikeInfo.unliked(likeCommand.userId(), likeCommand.productId());
     }
 
     public Collection<LikeInfo> getLikesByUserId(long userId) {

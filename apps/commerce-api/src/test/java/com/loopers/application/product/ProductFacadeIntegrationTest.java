@@ -48,7 +48,7 @@ class ProductFacadeIntegrationTest {
         // arrange
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
         ProductEntity product = productRepository.save(
-                new ProductEntity("아이폰", 1200000L, 15L, brand.getId())
+                ProductEntity.of("아이폰", 1200000L, 15L, brand.getId())
         );
         likeRepository.save(LikeEntity.of(1L, product.getId()));
         likeRepository.save(LikeEntity.of(2L, product.getId()));
@@ -67,8 +67,8 @@ class ProductFacadeIntegrationTest {
     void getProductsSorted_latest() {
         // arrange
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
-        productRepository.save(new ProductEntity("구형 모델", 500000L, 3L, brand.getId()));
-        productRepository.save(new ProductEntity("신형 모델", 1500000L, 2L, brand.getId()));
+        productRepository.save(ProductEntity.of("구형 모델", 500000L, 3L, brand.getId()));
+        productRepository.save(ProductEntity.of("신형 모델", 1500000L, 2L, brand.getId()));
         Pageable pageable = PageRequest.of(0, 10);
 
         // act
@@ -85,8 +85,8 @@ class ProductFacadeIntegrationTest {
     void getProductsSorted_priceAsc() {
         // arrange
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
-        productRepository.save(new ProductEntity("비싼 상품", 200000L, 5L, brand.getId()));
-        productRepository.save(new ProductEntity("저렴한 상품", 100000L, 3L, brand.getId()));
+        productRepository.save(ProductEntity.of("비싼 상품", 200000L, 5L, brand.getId()));
+        productRepository.save(ProductEntity.of("저렴한 상품", 100000L, 3L, brand.getId()));
         Pageable pageable = PageRequest.of(0, 10);
 
         // act
@@ -103,8 +103,8 @@ class ProductFacadeIntegrationTest {
     void getProductsSorted_likesDesc() {
         // arrange
         BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
-        ProductEntity productA = productRepository.save(new ProductEntity("상품A", 10000L, 1L, brand.getId()));
-        ProductEntity productB = productRepository.save(new ProductEntity("상품B", 10000L, 1L, brand.getId()));
+        ProductEntity productA = productRepository.save(ProductEntity.of("상품A", 10000L, 1L, brand.getId()));
+        ProductEntity productB = productRepository.save(ProductEntity.of("상품B", 10000L, 1L, brand.getId()));
 
         likeRepository.save(LikeEntity.of(1L, productA.getId()));
         likeRepository.save(LikeEntity.of(2L, productA.getId()));
