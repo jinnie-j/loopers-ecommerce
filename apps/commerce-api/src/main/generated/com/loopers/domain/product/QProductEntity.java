@@ -31,6 +31,8 @@ public class QProductEntity extends EntityPathBase<ProductEntity> {
 
     public final NumberPath<Long> id = createNumber("id", Long.class);
 
+    public final NumberPath<Long> likeCount = createNumber("likeCount", Long.class);
+
     public final StringPath name = createString("name");
 
     public final NumberPath<Long> price = createNumber("price", Long.class);
