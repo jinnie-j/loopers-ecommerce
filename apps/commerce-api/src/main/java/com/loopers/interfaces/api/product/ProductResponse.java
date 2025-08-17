@@ -1,5 +1,6 @@
 package com.loopers.interfaces.api.product;
 
+import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.product.ProductInfo;
 
 public record ProductResponse(
@@ -9,6 +10,10 @@ public record ProductResponse(
         Long stock,
         Long brandId
 ) {
+    public static ProductResponse from(ProductEntity e) {
+        return new ProductResponse(e.getId(), e.getName(), e.getPrice(), e.getStock(), e.getBrandId());
+    }
+
     public static ProductResponse from(ProductInfo info) {
         return new ProductResponse(
                 info.id(),

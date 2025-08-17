@@ -5,6 +5,7 @@ import com.loopers.interfaces.api.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,26 @@ public interface ProductV1ApiSpec {
             @Schema(description = "정렬 기준", example = "LATEST | PRICE_ASC | LIKES_DESC")
             @RequestParam(name = "sort", required = false, defaultValue = "LATEST")
             ProductSortType sort
+    );
+
+    @Operation(summary = "상품 목록 검색(브랜드 필터 + 페이징)")
+    @GetMapping("/search")
+    ApiResponse<Page<ProductResponse>> searchProducts(
+            @Schema(description = "브랜드 ID(옵션)", example = "42")
+            @RequestParam(name = "brandId", required = false)
+            Long brandId,
+
+            @Schema(description = "정렬 기준", example = "LATEST | PRICE_ASC | LIKES_DESC")
+            @RequestParam(name = "sort", required = false, defaultValue = "LATEST")
+            ProductSortType sort,
+
+            @Schema(description = "페이지(0부터 시작)", example = "0")
+            @RequestParam(name = "page", required = false, defaultValue = "0")
+            int page,
+
+            @Schema(description = "페이지 크기", example = "20")
+            @RequestParam(name = "size", required = false, defaultValue = "20")
+            int size
     );
 }
 
