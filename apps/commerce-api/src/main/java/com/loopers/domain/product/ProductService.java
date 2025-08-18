@@ -67,7 +67,6 @@ public class ProductService {
             @CacheEvict(cacheNames = RedisConfig.PRODUCT_DETAIL, key = "#productId"),
             @CacheEvict(cacheNames = RedisConfig.PRODUCT_LIST,   allEntries = true)
     })
-
     @Transactional
     public void decreaseStock(Long productId, Long quantity) {
         ProductEntity product = productRepository.findWithLockById(productId)

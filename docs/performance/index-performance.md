@@ -8,7 +8,7 @@ SELECT  p.id, p.name, p.price, p.brand_id,
         COALESCE(cnt.c, 0) AS like_count
 FROM products p
          LEFT JOIN (
-    SELECT product_id, COUNT(*) AS c스
+    SELECT product_id, COUNT(*) AS c
     GROUP BY product_id
 ) cnt ON cnt.product_id = p.id
 WHERE p.brand_id = 42        
@@ -19,6 +19,7 @@ ORDER BY like_count DESC, p.id DESC
 **실행 계획**
 
 ```
+
 > Limit: 20 row(s)  (actual time=74.738..74.740 rows=20 loops=1)
     -> Sort: like_count DESC, p.id DESC, limit input to 20 row(s) per chunk  (actual time=74.737..74.738 rows=20 loops=1)
         -> Stream results  (cost=105.32 rows=0) (actual time=1.921..74.535 rows=104 loops=1)
@@ -31,7 +32,6 @@ ORDER BY like_count DESC, p.id DESC
                             -> Table scan on <temporary>  (actual time=0.956..0.956 rows=0 loops=1)
                                 -> Aggregate using temporary table  (actual time=0.955..0.955 rows=0 loops=1)
                                     -> Covering index scan on likes using uk_like_user_product  (cost=0.35 rows=1) (actual time=0.945..0.945 rows=0 loops=1)
-
 ```
 
 **실행 계획 분석**
@@ -74,7 +74,6 @@ CREATE INDEX idx_product_brand_id ON product(brand_id);
 -> Select #2 (subquery in projection; dependent)
     -> Aggregate: count(0)  (cost=0.45 rows=1) (actual time=0.002..0.002 rows=1 loops=104)
         -> Covering index lookup on l using idx_like_pid (product_id=p.id)  (cost=0.35 rows=1) (actual time=0.001..0.001 rows=0 loops=104)
-
 ```
 **실행 계획 분석**
 * 실행결과 요약
