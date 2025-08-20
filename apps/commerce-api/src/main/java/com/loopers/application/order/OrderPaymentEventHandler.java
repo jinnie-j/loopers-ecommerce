@@ -13,6 +13,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -26,7 +27,7 @@ public class OrderPaymentEventHandler {
     private final PointService pointService;
     private final UserCouponService userCouponService;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onApproved(PaymentApprovedEvent e) {
         OrderEntity order = orderRepository.findById(e.orderId()).orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND));
@@ -39,7 +40,7 @@ public class OrderPaymentEventHandler {
         order.markPaid();
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onDeclined(PaymentDeclinedEvent e) {
         OrderEntity order = orderRepository.findById(e.orderId()).orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND));

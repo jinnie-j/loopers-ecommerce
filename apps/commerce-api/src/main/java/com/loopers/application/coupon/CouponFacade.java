@@ -6,6 +6,7 @@ import com.loopers.domain.userCoupon.UserCouponCommand;
 import com.loopers.domain.userCoupon.UserCouponService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Component
@@ -14,6 +15,7 @@ public class CouponFacade {
     private final CouponService couponService;
     private final UserCouponService userCouponService;
 
+    @Transactional
     public long applyCoupon(UserCouponCommand.Apply command) {
 
         CouponEntity coupon = couponService.getAvailableCoupon(command.couponId());

@@ -28,6 +28,7 @@ public class PointService {
         return pointEntity;
     }
 
+    @Transactional
     public void usePoints(long userId, Long amount) {
         PointEntity point = pointRepository.findWithLockByUserId(userId)
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "포인트 정보를 찾을 수 없습니다."));

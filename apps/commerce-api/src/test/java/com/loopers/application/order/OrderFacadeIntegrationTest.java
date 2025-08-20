@@ -1,39 +1,46 @@
 package com.loopers.application.order;
 
+import com.loopers.application.payment.PaymentCriteria;
+import com.loopers.application.payment.PaymentFacade;
+import com.loopers.application.payment.PaymentGateway;
 import com.loopers.domain.brand.BrandEntity;
 import com.loopers.domain.brand.BrandRepository;
-import com.loopers.domain.order.OrderCommand;
-import com.loopers.domain.order.OrderEntity;
-import com.loopers.domain.order.OrderInfo;
-import com.loopers.domain.order.OrderRepository;
+import com.loopers.domain.order.*;
+import com.loopers.domain.payment.PaymentRepository;
+import com.loopers.domain.payment.PaymentStatus;
 import com.loopers.domain.point.PointEntity;
 import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.product.ProductEntity;
 import com.loopers.domain.product.ProductRepository;
-import com.loopers.support.error.CoreException;
-import com.loopers.support.error.ErrorType;
 import com.loopers.utils.DatabaseCleanUp;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @DisplayName("OrderFacade 통합 테스트")
-@SpringBootTest
+@SpringBootTest(properties = {
+        "pg.base-url=http://localhost:9999",
+        "pg.user-id=135135",
+        "pg.callback-url=http://localhost:8080/api/v1/payments/callback"
+})
 class OrderFacadeIntegrationTest {
 
     @Autowired
     private OrderFacade orderFacade;
+
+    @Autowired
+    private PaymentFacade paymentFacade;
 
     @Autowired
     private ProductRepository productRepository;
@@ -47,9 +54,16 @@ class OrderFacadeIntegrationTest {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+    @MockitoBean private PaymentGateway gateway;
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
+
+    @PersistenceContext
+    EntityManager em;
 
     @AfterEach
     void tearDown() {
@@ -57,7 +71,7 @@ class OrderFacadeIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상적인 주문 시 재고, 포인트가 차감되고 주문이 생성된다")
+    @DisplayName("주문 생성 시 결제 요청이 되고, 재고/포인트는 차감되지 않는다.")
     void createOrder_success() {
         // arrange
         long userId = 1L;
@@ -67,155 +81,68 @@ class OrderFacadeIntegrationTest {
         );
         pointRepository.save(new PointEntity(userId, 5_000_000L));
 
-        OrderCommand.Order command = new OrderCommand.Order(
-                userId,
-                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L)), null
+        when(gateway.requestPayment(any())).thenReturn(
+                new PaymentGateway.CreatePaymentResponse("TX-123", "ACCEPTED")
         );
 
-        // act
-        OrderInfo result = orderFacade.createOrder(command);
+        var req = new OrderCriteria.CreateWithPayment(
+                userId,
+                List.of(new OrderCriteria.CreateWithPayment.Item(
+                        product.getId(), 1L, 3_000_000L
+                )),
+                null, "SAMSUNG", "1234-5678-9012-3456"
+        );
 
-        // assert
-        ProductEntity updatedProduct = productRepository.findById(product.getId()).orElseThrow();
-        PointEntity updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
+        var result = orderFacade.createOrder(req);
+
+        var updatedProduct = productRepository.findById(product.getId()).orElseThrow();
+        var updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
+        var payment = paymentRepository.findByOrderId(result.id()).orElseThrow();
 
         assertThat(result.totalPrice()).isEqualTo(3_000_000L);
-        assertThat(updatedProduct.getStock()).isEqualTo(9L);
-        assertThat(updatedPoint.getBalance()).isEqualTo(2_000_000L);
+        assertThat(updatedProduct.getStock()).isEqualTo(10L);        // 차감 X
+        assertThat(updatedPoint.getBalance()).isEqualTo(5_000_000L); // 차감 X
+        assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
+        assertThat(payment.getPgTxId()).isEqualTo("TX-123");
     }
 
     @Test
-    @DisplayName("재고가 부족하면 주문이 실패한다")
-    void createOrder_stockInsufficient() {
+    @DisplayName("PG 승인 콜백이 오면 재고/포인트가 차감되고 주문 상태가 PAID로 변한다.")
+    void approveCallback_shouldDeductAndMarkPaid() {
         // arrange
         long userId = 1L;
-        BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
-        ProductEntity product = productRepository.save(
-                ProductEntity.of("맥북", 3_000_000L, 0L, brand.getId())
-        );
+        BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플"));
+        ProductEntity product = productRepository.save(ProductEntity.of("맥북", 3_000_000L, 10L, brand.getId()));
         pointRepository.save(new PointEntity(userId, 5_000_000L));
 
-        OrderCommand.Order command = new OrderCommand.Order(
+        when(gateway.requestPayment(any())).thenReturn(
+                new PaymentGateway.CreatePaymentResponse("TX-APPROVE", "ACCEPTED")
+        );
+
+        var req = new OrderCriteria.CreateWithPayment(
                 userId,
-                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L)), null
+                List.of(new OrderCriteria.CreateWithPayment.Item(
+                        product.getId(), 1L, 3_000_000L)),
+                null, "SAMSUNG", "1234-5678-9012-3456"
         );
+        OrderInfo order = orderFacade.createOrder(req);
 
-        // act & assert
-        CoreException exception = assertThrows(CoreException.class, () -> {
-            orderFacade.createOrder(command);
-        });
-
-        assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
-    }
-
-    @Test
-    @DisplayName("포인트가 부족하면 주문이 실패한다")
-    void createOrder_pointInsufficient() {
-        // arrange
-        long userId = 1L;
-        BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플 브랜드"));
-        ProductEntity product = productRepository.save(
-                ProductEntity.of("맥북", 3_000_000L, 10L, brand.getId())
+        // act: 승인 콜백
+        paymentFacade.processPgCallback(
+                new PaymentCriteria.ProcessPgCallback(
+                        "TX-APPROVE", "APPROVED", null
+                )
         );
-        pointRepository.save(new PointEntity(userId, 1_000_000L));
+        em.clear();
+        // assert: 차감/상태 전환 확인
+        ProductEntity updatedProduct = productRepository.findById(product.getId()).orElseThrow();
+        PointEntity updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
+        OrderEntity updatedOrder = orderRepository.findById(order.id()).orElseThrow();
 
-        OrderCommand.Order command = new OrderCommand.Order(
-                userId,
-                List.of(new OrderCommand.OrderItem(product.getId(), 1L, 3_000_000L)), null
-        );
-
-        // act & assert
-        CoreException exception = assertThrows(CoreException.class, () -> {
-            orderFacade.createOrder(command);
-        });
-
-        assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
+        assertThat(updatedProduct.getStock()).isEqualTo(9L);
+        assertThat(updatedPoint.getBalance()).isEqualTo(2_000_000L);
+        assertThat(updatedOrder.getStatus()).isEqualTo(OrderStatus.PAID);
     }
 
-    @Test
-    @DisplayName("동시에 10개의 주문이 들어와도 재고는 100 -> 0 으로 정확히 차감된다.")
-    void concurrentOrders_reduceStock() throws InterruptedException {
-
-        Long userId = 1L;
-        BrandEntity brand = brandRepository.save(BrandEntity.of("브랜드", "설명"));
-
-        // 상품 초기 재고 100개
-        ProductEntity product = ProductEntity.of("상품", 1000L, 100L, brand.getId());
-        Long productId = productRepository.save(product).getId();
-
-        // 사용자 포인트 세팅 (총 10명 * 10개 = 100개 * 1000원)
-        pointRepository.save(new PointEntity(userId, 100_000));
-
-        int threadCount = 10;
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
-        for (int i = 0; i < threadCount; i++) {
-            executor.execute(() -> {
-                try {
-                    OrderCommand.OrderItem item = new OrderCommand.OrderItem(productId, 10L, 1000L);
-                    OrderCommand.Order command = new OrderCommand.Order(userId, List.of(item), null);
-                    orderFacade.createOrder(command);
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        latch.await();
-
-        // 상품 재고 확인
-        ProductEntity updated = productRepository.findById(productId).orElseThrow();
-        assertThat(updated.getStock()).isEqualTo(0L);
-
-        // 주문 10개가 생성되었는지 확인
-        List<OrderEntity> orders = orderRepository.findByUserId(userId);
-        assertThat(orders).hasSize(threadCount);
-    }
-
-    @Test
-    @DisplayName("동일한 유저가 서로 다른 주문을 동시에 수행해도, 포인트가 정상적으로 차감된다")
-    void concurrentDifferentOrders_shouldDeductPointsCorrectly() throws InterruptedException {
-        long userId = 1L;
-        int initialBalance = 10_000;
-        int threadCount = 5; // 주문 수
-        int deductionPerOrder = 1_000;
-
-        // 포인트 저장
-        pointRepository.save(new PointEntity(userId, initialBalance));
-
-        // 브랜드, 상품 생성
-        BrandEntity brand = brandRepository.save(BrandEntity.of("브랜드", "설명"));
-        List<ProductEntity> products = IntStream.range(0, threadCount)
-                .mapToObj(i -> productRepository.save(ProductEntity.of("상품" + i, (long) deductionPerOrder, 10L, brand.getId())))
-                .toList();
-
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-        CountDownLatch latch = new CountDownLatch(threadCount);
-
-        for (int i = 0; i < threadCount; i++) {
-            final int idx = i;
-            executor.submit(() -> {
-                try {
-                    OrderCommand.Order command = new OrderCommand.Order(
-                            userId,
-                            List.of(new OrderCommand.OrderItem(products.get(idx).getId(), 1L, (long) deductionPerOrder)),
-                            null
-                    );
-
-                    orderFacade.createOrder(command);
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-
-        latch.await();
-
-        PointEntity updated = pointRepository.findByUserId(userId).orElseThrow();
-        long expectedBalance = initialBalance - (threadCount * deductionPerOrder);
-
-        assertThat(updated.getBalance()).isEqualTo(expectedBalance);
-    }
 
 }
