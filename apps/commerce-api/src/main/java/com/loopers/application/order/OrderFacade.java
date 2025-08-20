@@ -1,10 +1,13 @@
 package com.loopers.application.order;
 
+import com.loopers.application.payment.PaymentCriteria;
+import com.loopers.application.payment.PaymentFacade;
 import com.loopers.domain.coupon.CouponEntity;
 import com.loopers.domain.coupon.CouponService;
-import com.loopers.domain.order.OrderCommand;
-import com.loopers.domain.order.OrderInfo;
-import com.loopers.domain.order.OrderService;
+import com.loopers.domain.order.*;
+import com.loopers.domain.payment.PaymentMethod;
+import com.loopers.domain.payment.PaymentRepository;
+import com.loopers.domain.payment.PaymentService;
 import com.loopers.domain.point.PointService;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.userCoupon.UserCouponCommand;
@@ -15,46 +18,46 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class OrderFacade {
 
     private final OrderService orderService;
-    private final PointService pointService;
-    private final UserCouponService userCouponService;
-    private final ProductService productService;
     private final CouponService couponService;
+    private final PaymentFacade paymentFacade;
 
     @Transactional
-    public OrderInfo createOrder(OrderCommand.Order command) {
-        // 총 상품 금액 계산
-        long totalPrice = command.orderItems().stream()
-                .mapToLong(item -> item.price() * item.quantity())
-                .sum();
-        // 재고 차감
-        command.orderItems().forEach(item ->
-                productService.decreaseStock(item.productId(), item.quantity()));
+    public OrderInfo createOrder(OrderCriteria.CreateWithPayment c) {
+        // 주문 저장
+        List<OrderItemEntity> items = c.orderItems().stream()
+                .map(i -> OrderItemEntity.of(i.productId(), i.quantity(), i.price()))
+                .toList();
 
-        // 쿠폰 할인 적용 (쿠폰 존재 시)
-        long discountedAmount = 0L;
-        if (command.couponId() != null) {
+        OrderEntity order = OrderEntity.of(c.userId(), items);
+        OrderEntity saved = orderService.save(order);
 
-            CouponEntity coupon = couponService.getAvailableCoupon(command.couponId());
+        long totalPrice = saved.getTotalPrice();
 
-            discountedAmount = couponService.applyDiscount(coupon, totalPrice);
-
-            userCouponService.useCoupon(
-                    new UserCouponCommand.Use(command.userId(), command.couponId())
-            );
+        // 할인 계산(검증)
+        long discount = 0L;
+        if (c.couponId() != null) {
+            CouponEntity coupon = couponService.getAvailableCoupon(c.couponId());
+            discount = couponService.applyDiscount(coupon, totalPrice);
         }
-            // 최종 결제 금액 = 총액 - 할인
-            long finalPayablePrice = totalPrice - discountedAmount;
-            if (finalPayablePrice < 0) {
-                throw new CoreException(ErrorType.BAD_REQUEST, "결제 금액이 0보다 작을 수 없습니다.");
-            }
-            pointService.usePoints(command.userId(), totalPrice);
+        long payable = Math.max(0, totalPrice - discount);
 
-            return orderService.createOrder(command);
-        }
+        // 결제 요청
+        paymentFacade.requestPayment(new PaymentCriteria.RequestPayment(
+                saved.getId(),
+                c.userId(),
+                payable,
+                PaymentMethod.CARD,
+                new PaymentCriteria.RequestPayment.Card(c.cardType(), c.cardNo()),
+                c.couponId()
+        ));
 
+        return OrderInfo.from(saved);
+    }
 }

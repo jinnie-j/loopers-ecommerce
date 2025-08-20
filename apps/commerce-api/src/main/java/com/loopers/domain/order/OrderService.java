@@ -39,4 +39,9 @@ public class OrderService {
 
         return OrderInfo.from(orderEntity);
     }
+
+    @Transactional
+    public OrderEntity save(OrderEntity order) {
+        return orderRepository.save(order);
+    }
 }

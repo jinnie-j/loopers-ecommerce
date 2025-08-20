@@ -21,13 +21,15 @@ public class OrderEntity extends BaseEntity {
 
     private Long totalPrice;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private OrderStatus status;
+
     protected OrderEntity() {}
 
     private OrderEntity(Long userId, List<OrderItemEntity> items) {
-        if (userId == null || items == null || items.isEmpty()) {
-            throw new CoreException(ErrorType.BAD_REQUEST);
+        if (userId == null || items == null || items.isEmpty()) {throw new CoreException(ErrorType.BAD_REQUEST);
         }
-
         this.userId = userId;
         this.totalPrice = items.stream()
                 .mapToLong(OrderItemEntity::calculateItemTotal)
@@ -35,9 +37,16 @@ public class OrderEntity extends BaseEntity {
 
         items.forEach(item -> item.setOrder(this));
         this.orderItems.addAll(items);
+        this.status = OrderStatus.PENDING_PAYMENT;
     }
 
     public static OrderEntity of(Long userId, List<OrderItemEntity> items) {
         return new OrderEntity(userId, items);
+    }
+
+    public void markPaid() { this.status = OrderStatus.PAID; }
+    public void markPaymentFailed() { this.status = OrderStatus.PAYMENT_FAILED; }
+    public boolean isTerminal() {
+        return status == OrderStatus.PAID || status == OrderStatus.PAYMENT_FAILED || status == OrderStatus.CANCELED;
     }
 }
