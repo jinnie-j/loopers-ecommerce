@@ -55,6 +55,12 @@ subprojects {
         // Lombok
         implementation("org.projectlombok:lombok")
         annotationProcessor("org.projectlombok:lombok")
+        //resilience
+        implementation ("io.github.resilience4j:resilience4j-spring-boot3")
+        implementation ("org.springframework.boot:spring-boot-starter-aop")
+        //feign
+        implementation ("org.springframework.cloud:spring-cloud-starter-openfeign")
+
         // Test
         testRuntimeOnly("org.junit.platform:junit-platform-launcher")
         // testcontainers:mysql 이 jdbc 사용함
