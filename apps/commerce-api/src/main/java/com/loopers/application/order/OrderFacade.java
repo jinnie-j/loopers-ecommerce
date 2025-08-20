@@ -27,9 +27,12 @@ public class OrderFacade {
     private final OrderService orderService;
     private final CouponService couponService;
     private final PaymentFacade paymentFacade;
+    private final ProductService productService;
 
     @Transactional
     public OrderInfo createOrder(OrderCriteria.CreateWithPayment c) {
+
+        productService.validateAvailability(c.orderItems());
         // 주문 저장
         List<OrderItemEntity> items = c.orderItems().stream()
                 .map(i -> OrderItemEntity.of(i.productId(), i.quantity(), i.price()))
