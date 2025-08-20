@@ -144,5 +144,74 @@ class OrderFacadeIntegrationTest {
         assertThat(updatedOrder.getStatus()).isEqualTo(OrderStatus.PAID);
     }
 
+    @Test
+    @DisplayName("PG 거절 콜백이 오면 주문 상태는 PAYMENT_FAILED가 되고 차감은 없다")
+    void declineCallback_shouldFailOrder_noDeduction() {
+        long userId = 1L;
+        BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플"));
+        ProductEntity product = productRepository.save(ProductEntity.of("맥북", 3_000_000L, 10L, brand.getId()));
+        pointRepository.save(new PointEntity(userId, 5_000_000L));
+
+        when(gateway.requestPayment(any())).thenReturn(
+                new PaymentGateway.CreatePaymentResponse("TX-DECLINE", "ACCEPTED")
+        );
+
+        var req = new OrderCriteria.CreateWithPayment(
+                userId,
+                List.of(new OrderCriteria.CreateWithPayment.Item(
+                        product.getId(), 1L, 3_000_000L)),
+                null, "SAMSUNG", "1234-5678-9012-3456"
+        );
+        OrderInfo order = orderFacade.createOrder(req);
+
+        // act
+        paymentFacade.processPgCallback(
+                new PaymentCriteria.ProcessPgCallback(
+                        "TX-DECLINE", "DECLINED", null
+                )
+        );
+
+        // assert
+        ProductEntity updatedProduct = productRepository.findById(product.getId()).orElseThrow();
+        PointEntity updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
+        OrderEntity updatedOrder = orderRepository.findById(order.id()).orElseThrow();
+
+        assertThat(updatedProduct.getStock()).isEqualTo(10L); // 차감 X
+        assertThat(updatedPoint.getBalance()).isEqualTo(5_000_000L);
+        assertThat(updatedOrder.getStatus()).isEqualTo(OrderStatus.PAYMENT_FAILED);
+    }
+
+
+    @Test
+    @DisplayName("승인 콜백이 중복으로 와도(멱등) 재고/포인트는 한 번만 차감된다")
+    void callbackIdempotent() {
+        long userId = 1L;
+        BrandEntity brand = brandRepository.save(BrandEntity.of("Apple", "애플"));
+        ProductEntity product = productRepository.save(ProductEntity.of("맥북", 3_000_000L, 10L, brand.getId()));
+        pointRepository.save(new PointEntity(userId, 5_000_000L));
+
+        when(gateway.requestPayment(any())).thenReturn(
+                new PaymentGateway.CreatePaymentResponse("TX-IDEMP", "ACCEPTED")
+        );
+
+        var req = new OrderCriteria.CreateWithPayment(
+                userId,
+                List.of(new OrderCriteria.CreateWithPayment.Item(
+                        product.getId(), 1L, 3_000_000L)),
+                null, "SAMSUNG", "1234-5678-9012-3456"
+        );
+        OrderInfo order = orderFacade.createOrder(req);
+
+        // 승인 콜백 2번
+        var cb = new PaymentCriteria.ProcessPgCallback("TX-IDEMP", "APPROVED", null);
+        paymentFacade.processPgCallback(cb);
+        paymentFacade.processPgCallback(cb);
+
+        ProductEntity updatedProduct = productRepository.findById(product.getId()).orElseThrow();
+        PointEntity updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
+
+        assertThat(updatedProduct.getStock()).isEqualTo(9L);         // 한 번만 차감
+        assertThat(updatedPoint.getBalance()).isEqualTo(2_000_000L); // 한 번만 차감
+    }
 
 }

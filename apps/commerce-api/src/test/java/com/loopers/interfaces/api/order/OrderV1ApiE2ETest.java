@@ -1,8 +1,6 @@
 package com.loopers.interfaces.api.order;
 
-import com.loopers.domain.order.OrderCommand;
-import com.loopers.domain.order.OrderInfo;
-import com.loopers.domain.order.OrderService;
+import com.loopers.application.payment.PaymentGateway;
 import com.loopers.domain.point.PointEntity;
 import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.product.ProductEntity;
@@ -18,12 +16,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+        properties = {
+                "pg.base-url=http://localhost:9999",
+                "pg.user-id=135135",
+                "pg.callback-url=http://localhost:8080/api/v1/payments/callback"}
+)
 @DisplayName("Order API E2E 테스트")
 public class OrderV1ApiE2ETest {
     /*
@@ -43,7 +49,9 @@ public class OrderV1ApiE2ETest {
     private final DatabaseCleanUp databaseCleanUp;
     private final ProductRepository productRepository;
     private final PointRepository pointRepository;
-    private final OrderService orderService;
+
+    @MockitoBean
+    private PaymentGateway gateway;
 
     @AfterEach
     void tearDown() {
@@ -51,12 +59,11 @@ public class OrderV1ApiE2ETest {
     }
 
     @Autowired
-    public OrderV1ApiE2ETest(TestRestTemplate testRestTemplate, ProductRepository productRepository, PointRepository pointRepository, DatabaseCleanUp databaseCleanUp, OrderService orderService) {
+    public OrderV1ApiE2ETest(TestRestTemplate testRestTemplate, ProductRepository productRepository, PointRepository pointRepository, DatabaseCleanUp databaseCleanUp) {
         this.testRestTemplate = testRestTemplate;
         this.productRepository = productRepository;
         this.pointRepository = pointRepository;
         this.databaseCleanUp = databaseCleanUp;
-        this.orderService = orderService;
     }
     private static final String ENDPOINT = "/api/v1/orders";
 
@@ -83,13 +90,18 @@ public class OrderV1ApiE2ETest {
             ProductEntity product = createProduct(10L);
             pointRepository.save(new PointEntity(userId, 10000L));
 
+            when(gateway.requestPayment(any())).thenReturn(
+                    new PaymentGateway.CreatePaymentResponse("TX-OK", "ACCEPTED")
+            );
             // 주문 생성
             OrderRequest.Create req = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 1L, product.getPrice())),
-                    null
+                    List.of(new OrderRequest.Item(product.getId(), 1L, product.getPrice())),
+                    null,
+                    "SAMSUNG",
+                    "1234-5678-9012-3456"
             );
-            HttpHeaders headers = createHeaders();
-            HttpEntity<OrderRequest.Create> createEntity = new HttpEntity<>(req, headers);
+
+            HttpEntity<OrderRequest.Create> createEntity = new HttpEntity<>(req, createHeaders());
 
             ParameterizedTypeReference<ApiResponse<OrderResponse.Detail>> createType = new ParameterizedTypeReference<>() {};
             ResponseEntity<ApiResponse<OrderResponse.Detail>> created = testRestTemplate.exchange(
@@ -103,7 +115,7 @@ public class OrderV1ApiE2ETest {
 
             ParameterizedTypeReference<ApiResponse<List<OrderResponse.Detail>>> listType = new ParameterizedTypeReference<>() {};
             ResponseEntity<ApiResponse<List<OrderResponse.Detail>>> listResp = testRestTemplate.exchange(
-                    ENDPOINT, HttpMethod.GET, new HttpEntity<>(headers), listType
+                    ENDPOINT, HttpMethod.GET, new HttpEntity<>(createHeaders()), listType
             );
 
             assertThat(listResp.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -123,9 +135,17 @@ public class OrderV1ApiE2ETest {
         void createOrder_exceedsStock() {
             ProductEntity product = createProduct(1L);
 
-            OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 10L, product.getPrice())), null
+            when(gateway.requestPayment(any())).thenReturn(
+                    new PaymentGateway.CreatePaymentResponse("TX-ANY", "ACCEPTED")
             );
+
+            OrderRequest.Create request = new OrderRequest.Create(
+                    List.of(new OrderRequest.Item(product.getId(), 10L, product.getPrice())),
+                    null,
+                    "SAMSUNG",
+                    "1234-5678-9012-3456"
+            );
+
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
             ParameterizedTypeReference<ApiResponse<OrderResponse.Detail>> responseType = new ParameterizedTypeReference<>() {};
 
@@ -139,9 +159,18 @@ public class OrderV1ApiE2ETest {
         @Test
         @DisplayName("존재하지 않는 상품으로 주문할 경우, 404 Not Found 응답을 반환한다.")
         void createOrder_nonexistentProduct() {
-            OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(9999L, 1L, 1000L)), null
+
+            when(gateway.requestPayment(any())).thenReturn(
+                    new PaymentGateway.CreatePaymentResponse("TX-ANY", "ACCEPTED")
             );
+
+            OrderRequest.Create request = new OrderRequest.Create(
+                    List.of(new OrderRequest.Item(9_999L, 1L, 1_000L)),
+                    null,
+                    "SAMSUNG",
+                    "1234-5678-9012-3456"
+            );
+
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
 
             ResponseEntity<ApiResponse> response = testRestTemplate.postForEntity(ENDPOINT, entity, ApiResponse.class);
@@ -157,9 +186,18 @@ public class OrderV1ApiE2ETest {
         @Test
         @DisplayName("유저 ID로 요청 시, 주문 목록이 반환된다.")
         void getOrders_success() {
+
             ProductEntity product = createProduct(10L);
+
+            when(gateway.requestPayment(any())).thenReturn(
+                    new PaymentGateway.CreatePaymentResponse("TX-ANY", "ACCEPTED")
+            );
+
             OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 1L, product.getPrice())), null
+                    List.of(new OrderRequest.Item(product.getId(), 1L, product.getPrice())),
+                    null,
+                    "SAMSUNG",
+                    "1234-5678-9012-3456"
             );
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
             testRestTemplate.postForEntity(ENDPOINT, entity, ApiResponse.class);
@@ -183,9 +221,18 @@ public class OrderV1ApiE2ETest {
 
             ProductEntity product = createProduct(10L);
             pointRepository.save(new PointEntity(userId, 10000L));
-            OrderRequest.Create request = new OrderRequest.Create(
-                    List.of(new OrderCommand.OrderItem(product.getId(), 1L, product.getPrice())), null
+
+            when(gateway.requestPayment(any())).thenReturn(
+                    new PaymentGateway.CreatePaymentResponse("TX-ANY", "ACCEPTED")
             );
+
+            OrderRequest.Create request = new OrderRequest.Create(
+                    List.of(new OrderRequest.Item(product.getId(), 1L, product.getPrice())),
+                    null,
+                    "SAMSUNG",
+                    "1234-5678-9012-3456"
+            );
+
             HttpEntity<OrderRequest.Create> entity = new HttpEntity<>(request, createHeaders());
             ParameterizedTypeReference<ApiResponse<OrderResponse.Detail>> responseType = new ParameterizedTypeReference<>() {};
 

@@ -27,8 +27,7 @@ public class OrderPaymentEventHandler {
     private final PointService pointService;
     private final UserCouponService userCouponService;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void onApproved(PaymentApprovedEvent e) {
         OrderEntity order = orderRepository.findById(e.orderId()).orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND));
         if (order.isTerminal()) return;
@@ -40,8 +39,7 @@ public class OrderPaymentEventHandler {
         order.markPaid();
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void onDeclined(PaymentDeclinedEvent e) {
         OrderEntity order = orderRepository.findById(e.orderId()).orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND));
         if (order.isTerminal()) return;
