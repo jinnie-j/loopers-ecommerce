@@ -1,4 +1,4 @@
-package com.loopers.infrastructure.pg;
+package com.loopers.infrastructure.payment.pg;
 
 import com.loopers.application.payment.PaymentGateway;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name="pgClient", url="${pg.base-url}", configuration=PgFeignConfig.class)
+@FeignClient(name="pgClient", url="${pg.base-url}", configuration= PgFeignConfig.class)
 public interface PgFeignClient {
-    record CreatePaymentRequest(String orderId, String cardType, String cardNo, String amount, String callbackUrl) {}
+    record CreatePaymentRequest(String orderId, String cardType, String cardNo, Long amount, String callbackUrl) {}
 
     @PostMapping("/api/v1/payments")
     PaymentGateway.CreatePaymentResponse request(@RequestBody CreatePaymentRequest body,
