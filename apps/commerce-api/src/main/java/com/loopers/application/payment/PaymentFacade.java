@@ -46,9 +46,11 @@ public class PaymentFacade {
         ));
 
         if (response != null && response.transactionId() != null) payment.markPending(response.transactionId());
-        else log.warn("PG create deferred orderId={} (resStatus={}, txId=null)",
-                requestPayment.orderId(), (response != null ? response.status() : "null"));
-
+        else {
+            paymentService.markFailed(payment);
+            log.warn("PG create deferred orderId={} (resStatus={}, txId=null)",
+                    requestPayment.orderId(), (response != null ? response.status() : "null"));
+        }
         return PaymentResult.Summary.from(payment);
     }
 

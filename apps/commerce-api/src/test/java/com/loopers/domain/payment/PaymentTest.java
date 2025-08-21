@@ -22,7 +22,6 @@ public class PaymentTest {
         // assert
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.REQUESTED);
         assertThat(payment.getPgTxId()).isNull();
-        assertThat(payment.getVersion()).isNull();
     }
 
     @Test

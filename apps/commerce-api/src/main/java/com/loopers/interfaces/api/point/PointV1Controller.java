@@ -12,7 +12,6 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/points")
 public class PointV1Controller implements PointV1ApiSpec{
 
     private final PointFacade pointFacade;

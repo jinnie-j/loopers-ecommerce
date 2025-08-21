@@ -88,13 +88,13 @@ public class PgFeignAdapterTest {
     @DisplayName("CircuitBreaker가 OPEN일 때 호출 → Fallback 실행")
     void circuitBreaker_open_shortCircuits_and_callsFallback() {
         CircuitBreaker cb = cbRegistry.circuitBreaker("pg");
-        // 테스트에서는 명시적으로 OPEN 전이시켜 단락 동작만 확인
+
         cb.transitionToOpenState();
 
         var dto = adapter.getPaymentByTx("TR-OPEN");
 
         assertThat(dto.transactionId()).isEqualTo("TR-OPEN");
-        assertThat(dto.status()).isEqualTo("UNKNOWN"); // 폴백 값
+        assertThat(dto.status()).isEqualTo("UNKNOWN");
         verify(client, never()).getByTx(anyString(), anyString());
     }
 

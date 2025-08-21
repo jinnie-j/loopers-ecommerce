@@ -37,9 +37,6 @@ public class PaymentEntity extends BaseEntity {
     @Column(name = "coupon_id")
     private Long couponId;
 
-    @Version
-    private Long version;
-
     private PaymentEntity(Long orderId, Long userId, Long amount, PaymentMethod method, Long couponId) {
         this.orderId = orderId;
         this.userId = userId;

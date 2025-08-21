@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name="pgClient", url="${pg.base-url}", configuration= PgFeignConfig.class)
+@FeignClient(name="pgClient", url = "http://localhost:9090", configuration= PgFeignConfig.class)
 public interface PgFeignClient {
     record CreatePaymentRequest(String orderId, String cardType, String cardNo, Long amount, String callbackUrl) {}
 
