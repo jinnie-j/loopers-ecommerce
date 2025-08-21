@@ -5,6 +5,7 @@ import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.payment.PaymentService;
 import com.loopers.domain.payment.PaymentStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class PaymentFacade {
 
@@ -34,17 +36,18 @@ public class PaymentFacade {
         }
 
         var card = requestPayment.card();
-        var res = gateway.requestPayment(new PaymentGateway.CreatePaymentRequest(
+        var response = gateway.requestPayment(new PaymentGateway.CreatePaymentRequest(
                 String.valueOf(requestPayment.orderId()),
-                String.valueOf(requestPayment.payableAmount()),
+                requestPayment.payableAmount(),
                 callbackUrl,
                 requestPayment.method(),
                 card != null ? card.cardType() : null,
                 card != null ? card.cardNo()   : null
         ));
 
-        if (res != null && res.transactionId() != null) payment.markPending(res.transactionId());
-        else payment.fail();
+        if (response != null && response.transactionId() != null) payment.markPending(response.transactionId());
+        else log.warn("PG create deferred orderId={} (resStatus={}, txId=null)",
+                requestPayment.orderId(), (response != null ? response.status() : "null"));
 
         return PaymentResult.Summary.from(payment);
     }

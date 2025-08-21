@@ -8,7 +8,7 @@ public interface PaymentGateway {
 
     record CreatePaymentRequest(
             String orderId,
-            String amount,
+            Long amount,
             String callbackUrl,
             PaymentMethod method,
             String cardType,
@@ -16,7 +16,7 @@ public interface PaymentGateway {
     ) {}
 
     record CreatePaymentResponse(String transactionId, String status) {}
-    record PgPaymentDto(String transactionId, String orderId, String status, String amount) {}
+    record PgPaymentDto(String transactionId, String orderId, String status, Long amount) {}
 
     CreatePaymentResponse requestPayment(CreatePaymentRequest req);
     PgPaymentDto getPaymentByTx(String transactionId);
