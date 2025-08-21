@@ -56,3 +56,53 @@ spring:
 springdoc:
   api-docs:
     enabled: false
+
+# PG 시뮬레이터 연결 정보
+pg:
+  base-url: http://localhost:9090
+  user-id: 135135
+  callback-url: http://localhost:8080/api/v1/payments/callback
+
+# OpenFeign 공통 설정
+feign:
+  httpclient:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 1000     # ms, TCP 연결 타임아웃
+        readTimeout: 2500        # ms, 응답 타임아웃
+        loggerLevel: basic       # none|basic|headers|full
+        decode404: true          # 404를 예외 대신 정상 응답으로 디코드
+      pgClient:                  # 특정 클라이언트(옵션): pg 전용 세부값
+        connectTimeout: 1000
+        readTimeout: 2500
+        loggerLevel: basic
+
+resilience4j:
+  circuitbreaker:
+    aspect-order: 1
+    instances:
+      pg:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 5
+  retry:
+    aspect-order: 2
+    instances:
+      pg:
+        maxAttempts: 3
+        waitDuration: 300ms
+        ignore-exceptions:
+          - io.github.resilience4j.circuitbreaker.CallNotPermittedException
+
+logging:
+  level:
+    com.loopers.infrastructure.pg.PgFeignClient: DEBUG
+
+payments:
+  recon:
+    fixed-delay: 30000
+    batch-size: 200
