@@ -2,6 +2,7 @@ package com.loopers.application.payment.event;
 
 import com.loopers.application.payment.PaymentApprovedEvent;
 import com.loopers.application.payment.PaymentDeclinedEvent;
+import com.loopers.domain.dataplatform.DataPlatformGateway;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderItemEntity;
 import com.loopers.domain.order.OrderRepository;
@@ -27,6 +28,7 @@ public class PaymentEventHandler {
     private final ProductService productService;
     private final PointService pointService;
     private final UserCouponService userCouponService;
+    private final DataPlatformGateway dataPlatformGateway;
 
     @Async("appExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -47,6 +49,8 @@ public class PaymentEventHandler {
             userCouponService.useCoupon(new UserCouponCommand.Use(e.userId(), e.couponId()));
         }
 
+        dataPlatformGateway.sendPaymentResult(e.orderId(), "APPROVED");
+
         order.markPaid();
     }
 
@@ -57,6 +61,9 @@ public class PaymentEventHandler {
         OrderEntity order = orderRepository.findById(e.orderId())
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND));
         if (order.isTerminal()) return;
+
+        dataPlatformGateway.sendPaymentResult(e.orderId(), "DECLINED");
+
         order.markPaymentFailed();
     }
 }
