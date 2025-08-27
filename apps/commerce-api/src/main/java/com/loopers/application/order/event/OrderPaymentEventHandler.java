@@ -1,4 +1,4 @@
-package com.loopers.application.order;
+package com.loopers.application.order.event;
 
 import com.loopers.application.payment.PaymentApprovedEvent;
 import com.loopers.application.payment.PaymentDeclinedEvent;
