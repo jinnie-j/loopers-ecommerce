@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentReconciliationService {
+public class PaymentScheduler {
 
     private final PaymentRepository paymentRepository;
     private final PaymentService paymentService;
