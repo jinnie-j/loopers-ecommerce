@@ -22,9 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -32,7 +34,9 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(properties = {
         "pg.base-url=http://localhost:9999",
         "pg.user-id=135135",
-        "pg.callback-url=http://localhost:8080/api/v1/payments/callback"
+        "pg.callback-url=http://localhost:8080/api/v1/payments/callback",
+        "payments.recon.batch-size=50",
+        "payments.recon.fixed-delay=10s"
 })
 class OrderFacadeIntegrationTest {
 
@@ -95,6 +99,8 @@ class OrderFacadeIntegrationTest {
 
         var result = orderFacade.createOrder(req);
 
+        awaitPaymentPending(result.id(), "TX-123");
+
         var updatedProduct = productRepository.findById(product.getId()).orElseThrow();
         var updatedPoint = pointRepository.findByUserId(userId).orElseThrow();
         var payment = paymentRepository.findByOrderId(result.id()).orElseThrow();
@@ -126,6 +132,8 @@ class OrderFacadeIntegrationTest {
                 null, "SAMSUNG", "1234-5678-9012-3456"
         );
         OrderInfo order = orderFacade.createOrder(req);
+
+        awaitPaymentPending(order.id(), "TX-APPROVE");
 
         // act: 승인 콜백
         paymentFacade.processPgCallback(
@@ -163,7 +171,7 @@ class OrderFacadeIntegrationTest {
                 null, "SAMSUNG", "1234-5678-9012-3456"
         );
         OrderInfo order = orderFacade.createOrder(req);
-
+        awaitPaymentPending(order.id(), "TX-DECLINE");
         // act
         paymentFacade.processPgCallback(
                 new PaymentCriteria.ProcessPgCallback(
@@ -202,6 +210,8 @@ class OrderFacadeIntegrationTest {
         );
         OrderInfo order = orderFacade.createOrder(req);
 
+        awaitPaymentPending(order.id(), "TX-IDEMP");
+
         // 승인 콜백 2번
         var cb = new PaymentCriteria.ProcessPgCallback("TX-IDEMP", "APPROVED", null);
         paymentFacade.processPgCallback(cb);
@@ -214,4 +224,11 @@ class OrderFacadeIntegrationTest {
         assertThat(updatedPoint.getBalance()).isEqualTo(2_000_000L); // 한 번만 차감
     }
 
+    private void awaitPaymentPending(Long orderId, String expectedTx) {
+        await().atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+            var p = paymentRepository.findByOrderId(orderId).orElseThrow();
+            assertThat(p.getStatus()).isEqualTo(PaymentStatus.PENDING);
+            assertThat(p.getPgTxId()).isEqualTo(expectedTx);
+        });
+    }
 }
