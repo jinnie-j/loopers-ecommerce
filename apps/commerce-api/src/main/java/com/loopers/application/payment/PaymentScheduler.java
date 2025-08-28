@@ -4,6 +4,8 @@ import com.loopers.domain.payment.PaymentEntity;
 import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.payment.PaymentService;
 import com.loopers.domain.payment.PaymentStatus;
+import com.loopers.domain.payment.event.PaymentApprovedEvent;
+import com.loopers.domain.payment.event.PaymentDeclinedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

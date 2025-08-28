@@ -1,7 +1,7 @@
 package com.loopers.application.dataplatform;
 
-import com.loopers.application.payment.PaymentApprovedEvent;
-import com.loopers.application.payment.PaymentDeclinedEvent;
+import com.loopers.domain.payment.event.PaymentApprovedEvent;
+import com.loopers.domain.payment.event.PaymentDeclinedEvent;
 import com.loopers.domain.dataplatform.DataPlatformGateway;
 import com.loopers.domain.order.event.OrderCreatedEvent;
 import lombok.RequiredArgsConstructor;

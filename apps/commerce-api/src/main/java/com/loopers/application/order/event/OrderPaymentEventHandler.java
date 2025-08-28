@@ -1,7 +1,7 @@
 package com.loopers.application.order.event;
 
-import com.loopers.application.payment.PaymentApprovedEvent;
-import com.loopers.application.payment.PaymentDeclinedEvent;
+import com.loopers.domain.payment.event.PaymentApprovedEvent;
+import com.loopers.domain.payment.event.PaymentDeclinedEvent;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderItemEntity;
 import com.loopers.domain.order.OrderRepository;
