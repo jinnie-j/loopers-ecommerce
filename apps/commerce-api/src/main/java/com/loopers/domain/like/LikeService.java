@@ -1,10 +1,12 @@
 package com.loopers.domain.like;
 
 import com.loopers.config.redis.RedisConfig;
+import com.loopers.domain.like.event.LikeChangedEvent;
 import com.loopers.infrastructure.product.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,8 @@ public class LikeService {
 
     private final LikeRepository likeRepository;
     private final ProductJpaRepository productJpaRepository;
+    private final ApplicationEventPublisher publisher;
+
 
     @Transactional
     @Caching(evict = {
@@ -32,8 +36,8 @@ public class LikeService {
             return LikeInfo.liked(userId, productId);
         }
         try {
-            likeRepository.save(LikeEntity.of(userId, productId));   // UNIQUE(user_id, product_id)로 중복 방지
-            productJpaRepository.incrementLikeCount(productId);
+            likeRepository.save(LikeEntity.of(userId, productId));
+            publisher.publishEvent(LikeChangedEvent.liked(userId, productId));
         } catch (DataIntegrityViolationException e) {
 
         }
@@ -51,7 +55,7 @@ public class LikeService {
 
         int removed = likeRepository.deleteByUserIdAndProductId(userId, productId);
         if (removed == 1) {
-            productJpaRepository.decrementLikeCount(productId);
+            publisher.publishEvent(LikeChangedEvent.unliked(userId, productId));
         }
         return LikeInfo.unliked(userId, productId);
     }

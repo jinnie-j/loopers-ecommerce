@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,11 +28,15 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public List<PaymentEntity> findReconTargets(LocalDateTime cutoff, int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by(ASC, "updatedAt"));
+        var cutoffZoned = cutoff.atZone(ZoneId.systemDefault());
         return paymentJpaRepository.findByStatusInAndUpdatedAtBefore(
                 List.of(PaymentStatus.PENDING, PaymentStatus.REQUESTED),
-                cutoff,
+                cutoffZoned,
                 pageable
         );
     }
+
+    @Override
+    public Optional<PaymentEntity> findById(long paymentId) {return paymentJpaRepository.findById(paymentId);}
 }
 

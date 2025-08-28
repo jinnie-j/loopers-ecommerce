@@ -28,7 +28,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("LikeFacade 통합 테스트")
-@SpringBootTest
+@SpringBootTest(properties = {
+        "pg.base-url=http://localhost:9999",
+        "pg.user-id=135135",
+        "pg.callback-url=http://localhost:8080/api/v1/payments/callback",
+        "payments.recon.batch-size=50",
+        "payments.recon.fixed-delay=10s"
+})
 public class LikeFacadeIntegrationTest {
 
     @Autowired private LikeFacade likeFacade;
