@@ -1,5 +1,5 @@
 
-# 비정규화, 인덱스를 이용한 성능개선 (카디널리티, 성능 비교)
+# 비정규화, 복합 인덱스를 이용한 성능개선 (카디널리티, 성능 비교)
 
 ## 최신 순 정렬 (latest)
 **쿼리**
@@ -13,7 +13,6 @@ FROM products
 WHERE brand_id = 42
 ORDER BY created_at DESC, id DESC
   LIMIT 20;
-
 ```
 **실행 계획**
 ```
@@ -52,7 +51,6 @@ FROM products
 WHERE brand_id = 42
 ORDER BY like_count DESC, id DESC
   LIMIT 20;
-
 ```
 **실행 계획**
 ```

@@ -24,6 +24,49 @@ spring:
       - logging.yml
       - monitoring.yml
 
+feign:
+  httpclient:
+    enabled: true
+  client:
+    config:
+      pgClient:
+        url: ${pg.base-url}
+        connectTimeout: 1000
+        readTimeout: 2500
+        loggerLevel: basic
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      pg:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+        permittedNumberOfCallsInHalfOpenState: 5
+  retry:
+    aspect-order: 2
+    instances:
+      pg:
+        maxAttempts: 3
+        waitDuration: 200ms
+        retryExceptions:
+          - java.lang.RuntimeException
+          - java.net.SocketTimeoutException
+          - feign.RetryableException
+        ignoreExceptions:
+          - java.lang.IllegalArgumentException
+logging:
+  level:
+    com.loopers.infrastructure.pg.PgFeignClient: DEBUG
+
+payments:
+  recon:
+    fixed-delay: 30000
+    batch-size: 200
+    max-attempts: 12
+
 springdoc:
   use-fqn: true
   swagger-ui:

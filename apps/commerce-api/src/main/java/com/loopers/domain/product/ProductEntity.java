@@ -14,7 +14,8 @@ import java.io.Serializable;
         name = "products",
         indexes = {
                 @Index(name = "idx_prod_brand_like_id", columnList = "brand_id, like_count DESC, id DESC"),
-                @Index(name = "idx_prod_brand_created_id", columnList = "brand_id, created_at DESC, id DESC")
+                @Index(name = "idx_prod_brand_created_id", columnList = "brand_id, created_at DESC, id DESC"),
+                @Index(name = "idx_prod_brand_price_id", columnList = "brand_id, price, id")
         }
 )
 @Getter

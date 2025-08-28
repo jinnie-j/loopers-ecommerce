@@ -2,6 +2,7 @@ rootProject.name = "jinnie-commerce"
 
 include(
     ":apps:commerce-api",
+    ":apps:pg-simulator",
     ":modules:jpa",
     ":modules:redis",
     ":supports:jackson",
