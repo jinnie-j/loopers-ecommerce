@@ -3,6 +3,7 @@ rootProject.name = "jinnie-commerce"
 include(
     ":apps:commerce-api",
     ":apps:pg-simulator",
+    ":apps:commerce-streamer",
     ":modules:jpa",
     ":modules:redis",
     ":modules:kafka",

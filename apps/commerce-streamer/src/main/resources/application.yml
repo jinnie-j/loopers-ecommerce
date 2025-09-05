@@ -19,42 +19,57 @@ spring:
     active: local
   config:
     import:
-      - application-jpa.yml
-      - application-redis.yml
-      - application-kafka.yml
-      - application-logging.yml
-      - application-monitoring.yml
+      - jpa.yml
+      - logging.yml
+      - monitoring.yml
+  datasource:
+    url: jdbc:mysql://localhost:3306/loopers
+    username: application
+    password: application
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
 
-demo-kafka:
-  test:
-    topic-name: demo.internal.topic-v1
+springdoc:
+  use-fqn: true
+  swagger-ui:
+    path: /swagger-ui.html
 
 ---
-
-spring.config.activate.on-profile: local, test
-
+spring:
+  config:
+    activate:
+      on-profile: local, test
+  kafka:
+    properties:
+      auto:
+        create.topics.enable: true
 server:
   port: 8084
 
 management:
   server:
-    port: 8085
+    port: 8087
 
 ---
-
-spring.config.activate.on-profile: dev
-
-server:
-  port: 8084
-
-management:
-  server:
-    port: 8085
+spring:
+  config:
+    activate:
+      on-profile: dev
 
 ---
-
-spring.config.activate.on-profile: qa
+spring:
+  config:
+    activate:
+      on-profile: qa
 
 ---
+spring:
+  config:
+    activate:
+      on-profile: prd
 
-spring.config.activate.on-profile: prd
+springdoc:
+  api-docs:
+    enabled: false
