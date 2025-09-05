@@ -73,4 +73,10 @@ public class ProductEntity extends BaseEntity implements Serializable {
         }
         this.stock += quantity;
     }
+
+    public void setLikeCount(long likeCount) {
+        if (likeCount < 0) likeCount = 0;
+        this.likeCount = likeCount;
+    }
+
 }
