@@ -1,7 +1,7 @@
-package com.loopers.application.order;
+package com.loopers.application.order.event;
 
-import com.loopers.application.payment.PaymentApprovedEvent;
-import com.loopers.application.payment.PaymentDeclinedEvent;
+import com.loopers.domain.payment.event.PaymentApprovedEvent;
+import com.loopers.domain.payment.event.PaymentDeclinedEvent;
 import com.loopers.domain.order.OrderEntity;
 import com.loopers.domain.order.OrderItemEntity;
 import com.loopers.domain.order.OrderRepository;
@@ -13,8 +13,6 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 

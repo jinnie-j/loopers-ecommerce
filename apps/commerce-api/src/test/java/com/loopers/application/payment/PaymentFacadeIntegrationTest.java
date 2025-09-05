@@ -20,9 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Duration;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -30,7 +32,9 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(properties = {
         "pg.base-url=http://localhost:9999",
         "pg.user-id=135135",
-        "pg.callback-url=http://localhost:8080/api/v1/payments/callback"
+        "pg.callback-url=http://localhost:8080/api/v1/payments/callback",
+        "payments.recon.batch-size=50",
+        "payments.recon.fixed-delay=10s"
 })
 class PaymentFacadeIntegrationTest {
 
@@ -68,6 +72,8 @@ class PaymentFacadeIntegrationTest {
 
         var order = orderFacade.createOrder(req);
 
+        awaitPaymentPending(order.id(), "TX-777");
+
         var payment = paymentRepository.findByOrderId(order.id()).orElseThrow();
         assertThat(payment.getStatus()).isEqualTo(PaymentStatus.PENDING);
         assertThat(payment.getPgTxId()).isEqualTo("TX-777");
@@ -89,6 +95,8 @@ class PaymentFacadeIntegrationTest {
                 userId, List.of(new OrderCriteria.CreateWithPayment.Item(
                 product.getId(), 1L, 1000L)), null, "SAMSUNG", "1111-2222-3333-4444");
         var order = orderFacade.createOrder(req);
+
+        awaitPaymentPending(order.id(), "TX-A");
 
         paymentFacade.processPgCallback(
                 new PaymentCriteria.ProcessPgCallback("TX-A", "APPROVED", null)
@@ -118,6 +126,8 @@ class PaymentFacadeIntegrationTest {
                 product.getId(), 1L, 1000L)), null, "SAMSUNG", "1111-2222-3333-4444");
         var order = orderFacade.createOrder(req);
 
+        awaitPaymentPending(order.id(), "TX-D");
+
         paymentFacade.processPgCallback(
                 new PaymentCriteria.ProcessPgCallback("TX-D", "DECLINED", null)
         );
@@ -127,6 +137,14 @@ class PaymentFacadeIntegrationTest {
 
         var updatedOrder = orderRepository.findById(order.id()).orElseThrow();
         assertThat(updatedOrder.getStatus()).isEqualTo(OrderStatus.PAYMENT_FAILED);
+    }
+
+    private void awaitPaymentPending(Long orderId, String expectedTx) {
+        await().atMost(Duration.ofSeconds(2)).untilAsserted(() -> {
+            var p = paymentRepository.findByOrderId(orderId).orElseThrow();
+            assertThat(p.getStatus()).isEqualTo(PaymentStatus.PENDING);
+            assertThat(p.getPgTxId()).isEqualTo(expectedTx);
+        });
     }
 
 }
