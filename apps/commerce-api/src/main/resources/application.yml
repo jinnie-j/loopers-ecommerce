@@ -21,8 +21,17 @@ spring:
     import:
       - jpa.yml
       - redis.yml
+      - kafka.yml
       - logging.yml
       - monitoring.yml
+  kafka:
+    bootstrap-servers: localhost:9092   # ← active 프로필에서 이 값이 실제로 로드되는지!
+    producer:
+      acks: all
+      properties:
+        enable.idempotence: true
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 feign:
   httpclient:
@@ -71,6 +80,11 @@ springdoc:
   use-fqn: true
   swagger-ui:
     path: /swagger-ui.html
+
+  kafka:
+    properties:
+      auto:
+        create.topics.enable: true
 
 ---
 spring:
