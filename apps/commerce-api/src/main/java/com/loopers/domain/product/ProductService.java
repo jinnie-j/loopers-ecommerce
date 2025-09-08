@@ -3,6 +3,7 @@ package com.loopers.domain.product;
 import com.loopers.application.order.OrderCriteria;
 import com.loopers.application.product.ProductQueryRepository;
 import com.loopers.config.redis.RedisConfig;
+import com.loopers.domain.product.event.StockAdjusted;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,7 @@ import static java.util.stream.Collectors.toSet;
 public class ProductService {
     private final ProductRepository productRepository;
     private final ProductQueryRepository productQueryRepository;
+    private final ApplicationEventPublisher publisher;
 
     @Caching(evict = {
             @CacheEvict(cacheNames = RedisConfig.PRODUCT_LIST, allEntries = true)
@@ -80,6 +83,30 @@ public class ProductService {
 
         product.decreaseStock(quantity);
         productRepository.save(product);
+
+        long after = product.getStock();
+        long delta = -quantity;
+
+        // 재고 변경 이벤트 발행 (트랜잭션 커밋 후 실제 카프카 전송)
+        publisher.publishEvent(StockAdjusted.of(productId, after, delta));
+    }
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = RedisConfig.PRODUCT_DETAIL, key = "#productId"),
+            @CacheEvict(cacheNames = RedisConfig.PRODUCT_LIST,   allEntries = true)
+    })
+    @Transactional
+    public void increaseStock(Long productId, Long quantity) {
+        ProductEntity product = productRepository.findWithLockById(productId)
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
+
+        product.decreaseStock(quantity);
+        productRepository.save(product);
+
+        long after = product.getStock();
+        long delta = +quantity;
+
+        publisher.publishEvent(StockAdjusted.of(productId, after, delta));
     }
 
     @Transactional(readOnly = true)

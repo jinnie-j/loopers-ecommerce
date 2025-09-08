@@ -1,11 +1,9 @@
 package com.loopers.domain.like;
 
-import com.loopers.config.redis.RedisConfig;
-import com.loopers.domain.like.event.LikeChangedEvent;
+import com.loopers.domain.event.LikeCountUpdated;
 import com.loopers.infrastructure.product.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Caching;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
@@ -16,6 +14,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class LikeService {
 
     private final LikeRepository likeRepository;
@@ -24,10 +23,6 @@ public class LikeService {
 
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = RedisConfig.PRODUCT_DETAIL, key = "#cmd.productId()"),
-            @CacheEvict(cacheNames = RedisConfig.PRODUCT_LIST,   allEntries = true)
-    })
     public LikeInfo like(LikeCommand.Create cmd) {
         Long userId = cmd.userId();
         Long productId = cmd.productId();
@@ -35,27 +30,44 @@ public class LikeService {
         if (likeRepository.existsByUserIdAndProductId(userId, productId)) {
             return LikeInfo.liked(userId, productId);
         }
+
+        boolean changed = false;
         try {
             likeRepository.save(LikeEntity.of(userId, productId));
-            publisher.publishEvent(LikeChangedEvent.liked(userId, productId));
+            changed = true;
         } catch (DataIntegrityViolationException e) {
+            changed = false;
+        }
 
+        if (changed) {
+            long likeCount = likeRepository.countByProductId(productId);
+
+            log.info("[LIKE] publish LikeCountUpdated productId={} likeCount={}", productId, likeCount); // ★
+            productJpaRepository.findById(productId).ifPresent(p -> {
+                p.setLikeCount(likeCount);
+                productJpaRepository.save(p);
+            });
+            publisher.publishEvent(LikeCountUpdated.of(productId, likeCount));
         }
         return LikeInfo.liked(userId, productId);
     }
 
     @Transactional
-    @Caching(evict = {
-            @CacheEvict(cacheNames = RedisConfig.PRODUCT_DETAIL, key = "#cmd.productId()"),
-            @CacheEvict(cacheNames = RedisConfig.PRODUCT_LIST,   allEntries = true)
-    })
     public LikeInfo unlike(LikeCommand.Create likeCommand) {
         Long userId = likeCommand.userId();
         Long productId = likeCommand.productId();
 
         int removed = likeRepository.deleteByUserIdAndProductId(userId, productId);
         if (removed == 1) {
-            publisher.publishEvent(LikeChangedEvent.unliked(userId, productId));
+            long likeCount = likeRepository.countByProductId(productId);
+
+            // (선택) ProductEntity.likeCount 동기화
+            productJpaRepository.findById(productId).ifPresent(p -> {
+                p.setLikeCount(likeCount);
+                productJpaRepository.save(p);
+            });
+
+            publisher.publishEvent(LikeCountUpdated.of(productId, likeCount));
         }
         return LikeInfo.unliked(userId, productId);
     }

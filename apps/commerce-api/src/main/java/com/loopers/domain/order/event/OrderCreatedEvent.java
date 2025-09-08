@@ -10,4 +10,8 @@ public record OrderCreatedEvent(
         PaymentMethod method,
         String cardType,
         String cardNo
-) {}
+) {
+    public static OrderCreatedEvent of(Long orderId, Long userId, long totalAmount, Long couponId) {
+        return new OrderCreatedEvent(orderId, userId, totalAmount, couponId, null, null, null);
+    }
+}
