@@ -41,6 +41,10 @@ spring:
   config:
     activate:
       on-profile: local, test
+  data:
+    redis:
+      host: localhost
+      port: 6379
   kafka:
     properties:
       auto:
@@ -52,6 +56,10 @@ management:
   server:
     port: 8087
 
+app:
+  cache:
+    product-detail: product:detail
+    product-list:  product:list
 ---
 spring:
   config:
