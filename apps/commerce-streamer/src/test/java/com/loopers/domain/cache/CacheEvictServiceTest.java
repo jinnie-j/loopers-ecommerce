@@ -29,7 +29,7 @@ class CacheEvictServiceTest {
     }
 
     @Test
-    void onLikeChanged_should_delete_detail_and_list() {
+    void shouldEvictDetailAndList_onLikeChanged() {
         long productId = 1014L;
 
         when(redis.keys("product:list*"))
@@ -49,7 +49,7 @@ class CacheEvictServiceTest {
     }
 
     @Test
-    void onStockAdjusted_should_delete_detail_and_list_even_when_no_list_keys() {
+    void shouldEvictDetailAndList_onStockAdjusted_whenNoListKeys() {
         long productId = 2002L;
 
         when(redis.keys("product:list*")).thenReturn(Set.of());

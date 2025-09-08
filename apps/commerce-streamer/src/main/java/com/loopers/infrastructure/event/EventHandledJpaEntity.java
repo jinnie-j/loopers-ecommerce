@@ -13,9 +13,12 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class EventHandledJpaEntity {
     @Id
-    @Column(name="event_id")     private String eventId;
-    @Id @Column(name="handler_name") private String handlerName;
-    @Column(name="processed_at", nullable=false) private LocalDateTime processedAt;
+    @Column(name="event_id")
+    private String eventId;
+    @Id @Column(name="handler_name")
+    private String handlerName;
+    @Column(name="processed_at", nullable=false)
+    private LocalDateTime processedAt;
 
     public static EventHandledJpaEntity of(String eventId, String handler){
         var e = new EventHandledJpaEntity();

@@ -22,7 +22,7 @@ public class CacheKafkaConsumerTest {
     Acknowledgment ack;
 
     @Test
-    public void likeChanged_event_should_evict_cache_and_ack() throws Exception {
+    public void shouldEvictCacheAndAck_onLikeChanged() throws Exception {
 
         var consumer = new CacheKafkaConsumer(new ObjectMapper(), cache);
         long productId = 1014L;
@@ -46,7 +46,7 @@ public class CacheKafkaConsumerTest {
     }
 
     @Test
-    public void stockAdjusted_event_should_evict_cache_and_ack() throws Exception {
+    public void shouldEvictCacheAndAck_onStockAdjusted() throws Exception {
         var consumer = new CacheKafkaConsumer(new ObjectMapper(), cache);
         long productId = 2002L;
         String json = """
@@ -69,7 +69,7 @@ public class CacheKafkaConsumerTest {
     }
 
     @Test
-    public void other_event_should_ack_only() throws Exception {
+    public void shouldAckOnly_onIrrelevantEvent() throws Exception {
         var consumer = new CacheKafkaConsumer(new ObjectMapper(), cache);
         String json = """
         {
