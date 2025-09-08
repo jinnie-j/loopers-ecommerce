@@ -25,19 +25,29 @@ public class ProductKafkaConsumer {
             var n = om.readTree(json);
             if (n.isTextual()) n = om.readTree(n.asText());
 
-            if (!"LIKE_CHANGED".equals(n.path("eventType").asText())) { ack.acknowledge(); return; }
-
+            String type = n.path("eventType").asText("");
             String eventId = n.path("eventId").asText(null);
-            if (eventId == null) {
-                eventId = "kafka:%s:%d:%d".formatted(rec.topic(), rec.partition(), rec.offset());
-            }
+            if (eventId == null) eventId = "kafka:%s:%d:%d".formatted(rec.topic(), rec.partition(), rec.offset());
 
-            String aggIdStr   = n.path("aggregateId").asText(null);
-            long productId    = (aggIdStr != null) ? Long.parseLong(aggIdStr) : n.path("aggregateId").asLong();
-            long likeCount    = n.path("payload").path("likeCount").asLong();
+            long productId = n.path("aggregateId").isTextual()
+                    ? Long.parseLong(n.path("aggregateId").asText())
+                    : n.path("aggregateId").asLong();
+
             Instant updatedAt = Instant.parse(n.path("updatedAt").asText());
 
-            metrics.handleLikeChanged(eventId, productId, likeCount, updatedAt);
+            switch (type) {
+                case "LIKE_CHANGED" -> {
+                    long likeCount = n.path("payload").path("likeCount").asLong();
+                    metrics.handleLikeChanged(eventId, productId, likeCount, updatedAt);
+                }
+                case "STOCK_ADJUSTED" -> {
+                    Long delta = n.path("payload").path("delta").isMissingNode()
+                            ? null : n.path("payload").path("delta").asLong();
+                    metrics.handleStockAdjusted(eventId, productId, delta, updatedAt);
+                }
+                default -> { /* ignore others */ }
+            }
+
             ack.acknowledge();
         } catch (Exception e) {
             throw new RuntimeException(e);
