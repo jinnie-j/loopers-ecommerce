@@ -3,12 +3,16 @@ package com.loopers.infrastructure.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.domain.event.LikeCountUpdated;
 import com.loopers.domain.order.event.OrderCreatedEvent;
+import com.loopers.domain.product.event.ProductViewed;
 import com.loopers.domain.product.event.StockAdjusted;
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.context.event.EventListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -90,6 +94,21 @@ public class AfterCommitKafkaBridge {
             ));
 
             kafka.send(ORDER_TOPIC, key, json).get();
+        } catch (Exception ex) {
+            throw new RuntimeException("Kafka publish failed", ex);
+        }
+    }
+
+    @EventListener
+    public void on(ProductViewed event) {
+        try {
+            Object key = String.valueOf(event.productId());
+            Object payload = om.writeValueAsString(event);
+
+            ProducerRecord<Object, Object> rec = new ProducerRecord<>(TOPIC, key, payload);
+            rec.headers().add("event-type", "VIEW".getBytes(StandardCharsets.UTF_8));
+
+            kafka.send(rec);
         } catch (Exception ex) {
             throw new RuntimeException("Kafka publish failed", ex);
         }
