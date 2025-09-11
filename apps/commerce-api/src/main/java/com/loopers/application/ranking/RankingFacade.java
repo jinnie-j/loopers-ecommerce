@@ -39,7 +39,7 @@ public class RankingFacade {
     }
 
     public Optional<RankingItem> getTodayRankOf(long productId) {
-        String key = RankingPolicy.all(LocalDate.now(RankingPolicy.ZONE));
+        String key = RankingPolicy.all(LocalDate.now());
         var rankOpt = rankingRepository.reverseRank(key, productId);
         if (rankOpt.isEmpty()) return Optional.empty();
         var scoreOpt = rankingRepository.score(key, productId);

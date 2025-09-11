@@ -10,7 +10,7 @@ import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
-public class RankingRepositoryImpl implements RankingRepository {
+public class RedisRankingRepositoryImpl implements RankingRepository {
 
     private final StringRedisTemplate redis;
 
