@@ -1,6 +1,6 @@
 package com.loopers.domain.like;
 
-import com.loopers.domain.event.LikeCountUpdated;
+import com.loopers.domain.like.event.LikeChangedEvent;
 import com.loopers.infrastructure.product.ProductJpaRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,14 +40,7 @@ public class LikeService {
         }
 
         if (changed) {
-            long likeCount = likeRepository.countByProductId(productId);
-
-            log.info("[LIKE] publish LikeCountUpdated productId={} likeCount={}", productId, likeCount); // ★
-            productJpaRepository.findById(productId).ifPresent(p -> {
-                p.setLikeCount(likeCount);
-                productJpaRepository.save(p);
-            });
-            publisher.publishEvent(LikeCountUpdated.of(productId, likeCount));
+            publisher.publishEvent(LikeChangedEvent.of(productId, +1));
         }
         return LikeInfo.liked(userId, productId);
     }
@@ -59,15 +52,7 @@ public class LikeService {
 
         int removed = likeRepository.deleteByUserIdAndProductId(userId, productId);
         if (removed == 1) {
-            long likeCount = likeRepository.countByProductId(productId);
-
-            // (선택) ProductEntity.likeCount 동기화
-            productJpaRepository.findById(productId).ifPresent(p -> {
-                p.setLikeCount(likeCount);
-                productJpaRepository.save(p);
-            });
-
-            publisher.publishEvent(LikeCountUpdated.of(productId, likeCount));
+            publisher.publishEvent(LikeChangedEvent.of(productId, -1));
         }
         return LikeInfo.unliked(userId, productId);
     }

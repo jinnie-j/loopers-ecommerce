@@ -1,8 +1,9 @@
 package com.loopers.infrastructure.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.loopers.domain.event.LikeCountUpdated;
+import com.loopers.domain.like.event.LikeChangedEvent;
 import com.loopers.domain.order.event.OrderCreatedEvent;
+import com.loopers.domain.product.event.ProductLiked;
 import com.loopers.domain.product.event.ProductViewed;
 import com.loopers.domain.product.event.StockAdjusted;
 import lombok.RequiredArgsConstructor;
@@ -31,21 +32,13 @@ public class AfterCommitKafkaBridge {
     private final ObjectMapper om = new ObjectMapper();
 
     @TransactionalEventListener(phase = AFTER_COMMIT)
-    public void on(LikeCountUpdated e) {
+    public void on(LikeChangedEvent e) {
         try {
             String key = e.productId().toString();
-            String json = om.writeValueAsString(Map.of(
-                    "eventId",     e.eventId(),
-                    "eventType",   "LIKE_CHANGED",
-                    "aggregateType","PRODUCT",
-                    "aggregateId", key,
-                    "updatedAt",   e.updatedAt().toString(),
-                    "producerApp", "commerce-api",
-                    "payload",     Map.of("likeCount", e.likeCount())
-            ));
-
-            kafka.send(TOPIC, key, json).get();
-
+            String json = om.writeValueAsString(new ProductLiked(e.productId(), null, e.delta()));
+            ProducerRecord<Object, Object> rec = new ProducerRecord<>(TOPIC, key, json);
+            rec.headers().add("event-type", "LIKE".getBytes(StandardCharsets.UTF_8));
+            kafka.send(rec);
         } catch (Exception ex) {
             throw new RuntimeException("Kafka publish failed", ex);
         }
