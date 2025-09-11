@@ -3,9 +3,11 @@ package com.loopers.infrastructure.kafka;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loopers.domain.like.event.LikeChangedEvent;
 import com.loopers.domain.order.event.OrderCreatedEvent;
+import com.loopers.domain.order.event.OrderPlacedEvent;
 import com.loopers.domain.product.event.ProductLiked;
 import com.loopers.domain.product.event.ProductViewed;
 import com.loopers.domain.product.event.StockAdjusted;
+import com.loopers.infrastructure.order.OrderJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.context.event.EventListener;
@@ -14,10 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.springframework.transaction.event.TransactionPhase.AFTER_COMMIT;
 
@@ -30,6 +29,7 @@ public class AfterCommitKafkaBridge {
 
     private final KafkaTemplate<Object, Object> kafka;
     private final ObjectMapper om = new ObjectMapper();
+    private final OrderJpaRepository orderJpaRepository;
 
     @TransactionalEventListener(phase = AFTER_COMMIT)
     public void on(LikeChangedEvent e) {
@@ -66,27 +66,24 @@ public class AfterCommitKafkaBridge {
     @TransactionalEventListener(phase = AFTER_COMMIT)
     public void on(OrderCreatedEvent e) {
         try {
-            String key = e.orderId().toString();
+            var order = orderJpaRepository.findByIdWithItems(e.orderId())
+                    .orElseThrow(() -> new IllegalStateException("order not found: " + e.orderId()));
 
-            // payload는 null 가능성이 있어 Map.of 대신 가변 Map 사용
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("userId",      e.userId());
-            payload.put("totalAmount", e.totalAmount());
-            payload.put("couponId",    e.couponId());
-            payload.put("method",      e.method() != null ? e.method().name() : null);
-            payload.put("cardType",    e.cardType());
+            var items = order.getOrderItems().stream()
+                    .map(it -> new OrderPlacedEvent.Item(
+                            it.getProductId(),
+                            it.getPrice(),
+                            it.getQuantity()
+                    ))
+                    .toList();
 
-            String json = om.writeValueAsString(Map.of(
-                    "eventId",       UUID.randomUUID().toString(),
-                    "eventType",     "ORDER_CREATED",
-                    "aggregateType", "ORDER",
-                    "aggregateId",   key,
-                    "updatedAt",     Instant.now().toString(),
-                    "producerApp",   "commerce-api",
-                    "payload",       payload
-            ));
+            String json = om.writeValueAsString(new OrderPlacedEvent(String.valueOf(e.orderId()), items));
 
-            kafka.send(ORDER_TOPIC, key, json).get();
+            ProducerRecord<Object, Object> rec =
+                    new ProducerRecord<>(ORDER_TOPIC, String.valueOf(e.orderId()), json);
+            rec.headers().add("event-type", "ORDER".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+            kafka.send(rec);
         } catch (Exception ex) {
             throw new RuntimeException("Kafka publish failed", ex);
         }
