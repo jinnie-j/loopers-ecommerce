@@ -17,6 +17,6 @@ public class RankingBatchAggregator {
 
     public void apply(LocalDate date, Map<String, Double> productDeltas) {
         if (productDeltas == null || productDeltas.isEmpty()) return;
-        rankingRepository.incrementScores(RankingPolicy.all(date), productDeltas, RankingPolicy.expireAt(date));
+        rankingRepository.incrementScores(RankingPolicy.all(date), productDeltas, RankingPolicy.expireAt());
     }
 }
