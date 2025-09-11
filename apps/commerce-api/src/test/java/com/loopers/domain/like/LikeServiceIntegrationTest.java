@@ -1,6 +1,7 @@
 package com.loopers.domain.like;
 
 import com.loopers.domain.brand.*;
+import com.loopers.domain.like.event.LikeChangedEvent;
 import com.loopers.domain.product.*;
 import com.loopers.domain.user.UserInfo;
 import com.loopers.domain.brand.BrandCommand;
@@ -16,10 +17,15 @@ import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @DisplayName("LikeService 통합 테스트")
@@ -131,5 +137,50 @@ public class LikeServiceIntegrationTest {
         assertEquals(userInfo.id(), likeInfo.userId());
         assertEquals(productInfo.id(), likeInfo.productId());
         assertFalse(likeInfo.isLike());
+    }
+
+
+    @DisplayName("새로 좋아요를 등록하면 likeChangedEvent가 발행된다.")
+    @Test
+    void like_LikeChangedEvent_check() {
+        LikeRepository likeRepository = mock(LikeRepository.class);
+        ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+
+        LikeService sut = new LikeService(likeRepository, publisher);
+
+        when(likeRepository.existsByUserIdAndProductId(1L, 101L)).thenReturn(false);
+        when(likeRepository.save(any(LikeEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        sut.like(new LikeCommand.Create(1L, 101L));
+
+        verify(likeRepository).save(any(LikeEntity.class));
+
+        ArgumentCaptor<Object> cap = ArgumentCaptor.forClass(Object.class);
+        verify(publisher).publishEvent(cap.capture());
+        assertThat(cap.getValue()).isInstanceOf(LikeChangedEvent.class);
+        LikeChangedEvent e = (LikeChangedEvent) cap.getValue();
+        assertThat(e.productId()).isEqualTo(101L);
+        assertThat(e.delta()).isEqualTo(+1);
+    }
+
+    @DisplayName("좋아요가 삭제되면 likeChangedEvent가 발행된다.")
+    @Test
+    void unlike_LikeChangedEvent_check() {
+        LikeRepository likeRepository = mock(LikeRepository.class);
+        ApplicationEventPublisher publisher = mock(ApplicationEventPublisher.class);
+
+        LikeService sut = new LikeService(likeRepository, publisher);
+
+        when(likeRepository.deleteByUserIdAndProductId(1L, 101L)).thenReturn(1);
+
+        sut.unlike(new LikeCommand.Create(1L, 101L));
+
+        verify(likeRepository).deleteByUserIdAndProductId(1L, 101L);
+
+        ArgumentCaptor<Object> cap = ArgumentCaptor.forClass(Object.class);
+        verify(publisher).publishEvent(cap.capture());
+        LikeChangedEvent e = (LikeChangedEvent) cap.getValue();
+        assertThat(e.productId()).isEqualTo(101L);
+        assertThat(e.delta()).isEqualTo(-1);
     }
 }

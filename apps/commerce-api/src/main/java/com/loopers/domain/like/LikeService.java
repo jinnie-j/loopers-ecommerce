@@ -18,7 +18,6 @@ import java.util.List;
 public class LikeService {
 
     private final LikeRepository likeRepository;
-    private final ProductJpaRepository productJpaRepository;
     private final ApplicationEventPublisher publisher;
 
 
