@@ -6,6 +6,7 @@ import com.loopers.domain.ranking.RankingRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,10 +21,12 @@ import static org.mockito.Mockito.*;
 public class RankingFacadeIntegrationTest {
     @Mock RankingRepository rankingRepository;
 
+    @InjectMocks
+    RankingFacade sut;
+
     @Test
     @DisplayName("총 개수가 0이면 빈 페이지를 반환한다")
     void getRankingPage_empty_when_total_zero() {
-        RankingFacade sut = new RankingFacade(rankingRepository);
         when(rankingRepository.size(anyString())).thenReturn(0L);
 
         RankingPage page = sut.getRankingPage(LocalDate.of(2025, 9, 11), 1, 10);
@@ -40,7 +43,6 @@ public class RankingFacadeIntegrationTest {
     @Test
     @DisplayName("내림차순 스코어를 순위로 매핑해 페이지를 구성한다")
     void getRankingPage_maps_member_scores_to_rank_items() {
-        RankingFacade sut = new RankingFacade(rankingRepository);
 
         when(rankingRepository.size(anyString())).thenReturn(3L);
         when(rankingRepository.reverseRangeWithScores(anyString(), eq(0L), eq(1L)))
@@ -74,7 +76,6 @@ public class RankingFacadeIntegrationTest {
     @Test
     @DisplayName("오늘의 단건 랭킹이 존재하면 0-based rank를 +1하여 반환한다")
     void getTodayRankOf_present() {
-        RankingFacade sut = new RankingFacade(rankingRepository);
 
         when(rankingRepository.reverseRank(anyString(), eq(555L))).thenReturn(Optional.of(0L));
         when(rankingRepository.score(anyString(), eq(555L))).thenReturn(Optional.of(9.99));
@@ -95,7 +96,6 @@ public class RankingFacadeIntegrationTest {
     @Test
     @DisplayName("오늘의 단건 랭킹이 없으면 빈 Optional을 반환한다")
     void getTodayRankOf_absent() {
-        RankingFacade sut = new RankingFacade(rankingRepository);
 
         when(rankingRepository.reverseRank(anyString(), eq(42L))).thenReturn(Optional.empty());
 
