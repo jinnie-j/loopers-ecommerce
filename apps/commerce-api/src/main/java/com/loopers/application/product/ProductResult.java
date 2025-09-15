@@ -9,7 +9,9 @@ public record ProductResult(
         Long stock,
         Long brandId,
         String brandName,
-        Long likeCount
+        Long likeCount,
+        Long todayRank,
+        Double todayScore
 ) {
     public static ProductResult of(ProductInfo info, String brandName, Long likeCount) {
         return new ProductResult(
@@ -19,7 +21,23 @@ public record ProductResult(
                 info.stock(),
                 info.brandId(),
                 brandName,
-                likeCount
+                likeCount,
+                null,
+                null
         );
     }
+    public static ProductResult ofWithRank(ProductInfo info, String brandName, Long likeCount, Long todayRank, Double todayScore) {
+        return new ProductResult(
+                info.id(),
+                info.name(),
+                info.price(),
+                info.stock(),
+                info.brandId(),
+                brandName,
+                likeCount,
+                todayRank,
+                todayScore
+        );
+    }
+
 }
