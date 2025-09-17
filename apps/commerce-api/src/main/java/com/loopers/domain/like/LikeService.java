@@ -39,7 +39,7 @@ public class LikeService {
         }
 
         if (changed) {
-            publisher.publishEvent(LikeChangedEvent.of(productId, +1));
+            publisher.publishEvent(LikeChangedEvent.liked(userId, productId));
         }
         return LikeInfo.liked(userId, productId);
     }
@@ -51,7 +51,7 @@ public class LikeService {
 
         int removed = likeRepository.deleteByUserIdAndProductId(userId, productId);
         if (removed == 1) {
-            publisher.publishEvent(LikeChangedEvent.of(productId, -1));
+            publisher.publishEvent(LikeChangedEvent.unliked(userId, productId));
         }
         return LikeInfo.unliked(userId, productId);
     }

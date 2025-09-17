@@ -41,7 +41,7 @@ public class ProductFacade {
             todayRank = rankOpt.get().rank();
             todayScore = rankOpt.get().score();
         }
-        publisher.publishEvent(new ProductViewed(productId, /*viewerId*/ null));
+        publisher.publishEvent(ProductViewed.now(productId));
 
         return ProductResult.ofWithRank(productInfo, brandName, likeCount, todayRank, todayScore);
     }
