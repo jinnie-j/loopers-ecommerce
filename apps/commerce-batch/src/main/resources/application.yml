@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: commerce-batch
+  main:
+    web-application-type: none   # ?? ?? ? ????
+  datasource:
+    url: jdbc:mysql://localhost:3306/loopers
+    username: application
+    password: application
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  profiles:
+    active: local
+  config:
+    import:
+      - jpa.yml
+  jpa:
+    hibernate:
+      ddl-auto: update
+  batch:
+    job:
+      enabled: false
+    jdbc:
+      initialize-schema: always
+logging:
+  level:
+    org.springframework.batch: INFO
