@@ -26,11 +26,18 @@ docker-compose -f ./docker/monitoring-compose.yml up
 ```
 Root
 ├── apps ( spring-applications )
-│   └── 📦 commerce-api
+│   ├── 📦 commerce-api
+│   ├── 📦 commerce-batch
+│   ├── 📦 commerce-streamer
+│   └── 📦 pg-simulator
 ├── modules ( reusable-configurations )
-│   └── 📦 jpa
-│   └── 📦 redis
+│   ├── 📦 jpa
+│   ├── 📦 redis
+│   ├── 📦 kafka
+│   ├── 📦 feign
+│   └── 📦 resilience4j
 └── supports ( add-ons )
+    ├── 📦 jackson
     ├── 📦 monitoring
     └── 📦 logging
 ```
