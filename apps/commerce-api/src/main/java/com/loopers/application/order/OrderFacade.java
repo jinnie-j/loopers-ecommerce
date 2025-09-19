@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.List;
 
 @Component
@@ -51,7 +52,8 @@ public class OrderFacade {
                 c.couponId(),
                 PaymentMethod.CARD,
                 c.cardType(),
-                c.cardNo()
+                c.cardNo(),
+                Instant.now().toEpochMilli()
         ));
 
         return OrderInfo.from(saved);
