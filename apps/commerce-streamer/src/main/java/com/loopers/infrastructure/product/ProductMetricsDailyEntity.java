@@ -18,6 +18,9 @@ public class ProductMetricsDailyEntity {
     @Column(name = "like_delta", nullable = false)
     private long likeDelta;
 
+    @Column(name = "view_delta", nullable = false)
+    private long viewDelta;
+
     @Column(name = "sales_qty", nullable = false)
     private long salesQty;
 
@@ -25,9 +28,10 @@ public class ProductMetricsDailyEntity {
     private Instant updatedAt;
 
     public static ProductMetricsDailyEntity of(long productId, java.time.LocalDate date,
-                                               long likeDelta, long salesQty, Instant updatedAt) {
+                                               long viewDelta, long likeDelta, long salesQty, Instant updatedAt) {
         return ProductMetricsDailyEntity.builder()
                 .id(new ProductMetricsDailyKey(date, productId))
+                .viewDelta(viewDelta)
                 .likeDelta(likeDelta)
                 .salesQty(salesQty)
                 .updatedAt(updatedAt)

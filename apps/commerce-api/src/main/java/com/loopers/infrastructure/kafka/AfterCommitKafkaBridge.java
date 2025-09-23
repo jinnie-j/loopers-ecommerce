@@ -1,10 +1,10 @@
 package com.loopers.infrastructure.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.loopers.domain.like.event.LikeChangedEvent;
 import com.loopers.domain.order.event.OrderCreatedEvent;
 import com.loopers.domain.order.event.OrderPlacedEvent;
-import com.loopers.domain.product.event.ProductLiked;
 import com.loopers.domain.product.event.ProductViewed;
 import com.loopers.domain.product.event.StockAdjusted;
 import com.loopers.infrastructure.order.OrderJpaRepository;
@@ -35,7 +35,11 @@ public class AfterCommitKafkaBridge {
     public void on(LikeChangedEvent e) {
         try {
             String key = e.productId().toString();
-            String json = om.writeValueAsString(new ProductLiked(e.productId(), null, e.delta()));
+            String json = om.writeValueAsString(Map.of(
+                    "productId",  e.productId(),
+                    "delta",      e.delta(),
+                    "occurredAt", e.occurredAt()
+            ));
             ProducerRecord<Object, Object> rec = new ProducerRecord<>(TOPIC, key, json);
             rec.headers().add("event-type", "LIKE".getBytes(StandardCharsets.UTF_8));
             kafka.send(rec);
@@ -77,11 +81,15 @@ public class AfterCommitKafkaBridge {
                     ))
                     .toList();
 
-            String json = om.writeValueAsString(new OrderPlacedEvent(String.valueOf(e.orderId()), items));
+            String json = om.writeValueAsString(Map.of(
+                    "orderId",    String.valueOf(e.orderId()),
+                    "occurredAt", e.occurredAt(),
+                    "items",      items
+            ));
 
             ProducerRecord<Object, Object> rec =
                     new ProducerRecord<>(ORDER_TOPIC, String.valueOf(e.orderId()), json);
-            rec.headers().add("event-type", "ORDER".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            rec.headers().add("event-type", "ORDER".getBytes(StandardCharsets.UTF_8));
 
             kafka.send(rec);
         } catch (Exception ex) {
@@ -93,11 +101,16 @@ public class AfterCommitKafkaBridge {
     public void on(ProductViewed event) {
         try {
             Object key = String.valueOf(event.productId());
-            Object payload = om.writeValueAsString(event);
+            ObjectNode node = om.createObjectNode()
+                    .put("productId",  event.productId())
+                    .put("occurredAt", event.occurredAt());
+            if (event.viewerId() != null) {
+                node.put("viewerId", event.viewerId());
+            }
+            String json = om.writeValueAsString(node);
 
-            ProducerRecord<Object, Object> rec = new ProducerRecord<>(TOPIC, key, payload);
+            ProducerRecord<Object, Object> rec = new ProducerRecord<>(TOPIC, key, json);
             rec.headers().add("event-type", "VIEW".getBytes(StandardCharsets.UTF_8));
-
             kafka.send(rec);
         } catch (Exception ex) {
             throw new RuntimeException("Kafka publish failed", ex);
